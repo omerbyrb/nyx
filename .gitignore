@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+
+# Go
+agent/nyx-agent
+agent/bin/
+
+# Node
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env
+
+# DB
+*.db
+*.sqlite
+
+# Certs
+*.pem
+*.key
+*.crt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
