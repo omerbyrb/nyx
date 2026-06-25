@@ -1,8 +1,9 @@
-import { Terminal, Cpu, LayoutDashboard, Activity } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
   onNavigate: (page: string) => void;
+  onLogout: () => void;
 }
 
 const navItems = [
@@ -12,7 +13,7 @@ const navItems = [
   { id: "console", label: "Console", icon: Terminal },
 ];
 
-export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarProps) {
   return (
     <aside className="w-56 bg-nyx-surface border-r border-nyx-border flex flex-col">
       <div className="p-6 border-b border-nyx-border">
@@ -22,7 +23,7 @@ export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
           </div>
           <div>
             <div className="text-nyx-text font-semibold text-sm">NYX C2</div>
-            <div className="text-nyx-muted text-xs">v0.1.0</div>
+            <div className="text-nyx-muted text-xs">v0.2.0</div>
           </div>
         </div>
       </div>
@@ -44,11 +45,18 @@ export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-nyx-border">
-        <div className="flex items-center gap-2">
+      <div className="p-3 border-t border-nyx-border space-y-2">
+        <div className="flex items-center gap-2 px-1">
           <div className="w-2 h-2 rounded-full bg-nyx-green animate-pulse" />
           <span className="text-nyx-muted text-xs">Server Online</span>
         </div>
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm text-nyx-muted hover:text-nyx-red hover:bg-nyx-border transition-colors"
+        >
+          <LogOut size={16} />
+          Disconnect
+        </button>
       </div>
     </aside>
   );

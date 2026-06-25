@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from db.database import get_db
 from models.agent import Agent
 from models.task import Task
+from core.ws_manager import manager
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+import asyncio
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
@@ -43,6 +44,10 @@ def agent_checkin(data: AgentCheckin, db: Session = Depends(get_db)):
         Task.status == "pending"
     ).first()
 
+    if pending:
+        pending.status = "running"
+        db.commit()
+
     return {
         "agent_id": agent.id,
         "sleep": agent.sleep,
@@ -51,7 +56,7 @@ def agent_checkin(data: AgentCheckin, db: Session = Depends(get_db)):
     }
 
 @router.post("/{agent_id}/result")
-def submit_result(agent_id: str, result: TaskResult, db: Session = Depends(get_db)):
+async def submit_result(agent_id: str, result: TaskResult, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == result.task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -60,6 +65,17 @@ def submit_result(agent_id: str, result: TaskResult, db: Session = Depends(get_d
     task.status = result.status
     task.completed_at = datetime.utcnow()
     db.commit()
+
+    event = {
+        "type": "task_update",
+        "task_id": task.id,
+        "agent_id": agent_id,
+        "output": result.output,
+        "status": result.status,
+    }
+    await manager.broadcast_task_update(agent_id, event)
+    await manager.broadcast_task_update("__all__", event)
+
     return {"status": "ok"}
 
 @router.get("/")
@@ -68,4 +84,14 @@ def list_agents(db: Session = Depends(get_db)):
 
 @router.get("/{agent_id}/tasks")
 def get_tasks(agent_id: str, db: Session = Depends(get_db)):
-    return db.query(Task).filter(Task.agent_id == agent_id).all()
+    return db.query(Task).filter(Task.agent_id == agent_id).order_by(Task.created_at.desc()).all()
+
+@router.patch("/{agent_id}/sleep")
+def update_sleep(agent_id: str, sleep: int, jitter: int = 1, db: Session = Depends(get_db)):
+    agent = db.query(Agent).filter(Agent.id == agent_id).first()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent.sleep = str(sleep)
+    agent.jitter = str(jitter)
+    db.commit()
+    return {"status": "ok"}
