@@ -1,0 +1,24 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from db.database import engine, Base
+from api.agents import router as agents_router
+from api.tasks import router as tasks_router
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Nyx C2", version="0.1.0", docs_url="/docs")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(agents_router)
+app.include_router(tasks_router)
+
+@app.get("/")
+def root():
+    return {"name": "Nyx C2 Server", "version": "0.1.0", "status": "online"}
