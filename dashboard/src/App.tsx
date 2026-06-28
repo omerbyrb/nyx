@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Agents from "./pages/Agents";
@@ -6,8 +7,14 @@ import Tasks from "./pages/Tasks";
 import Console from "./pages/Console";
 import Login from "./pages/Login";
 
+const pageVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit:    { opacity: 0, y: -8 },
+};
+
 export default function App() {
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage]   = useState("dashboard");
   const [authed, setAuthed] = useState(!!localStorage.getItem("nyx_token"));
 
   if (!authed) return <Login onLogin={() => setAuthed(true)} />;
@@ -24,16 +31,21 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-nyx-bg overflow-hidden">
-      <Sidebar
-        activePage={page}
-        onNavigate={setPage}
-        onLogout={() => {
-          localStorage.removeItem("nyx_token");
-          setAuthed(false);
-        }}
-      />
-      <main className="flex-1 overflow-hidden">
-        {renderPage()}
+      <Sidebar activePage={page} onNavigate={setPage} onLogout={() => { localStorage.removeItem("nyx_token"); setAuthed(false); }} />
+      <main className="flex-1 overflow-hidden relative">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={page}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="h-full overflow-y-auto"
+          >
+            {renderPage()}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

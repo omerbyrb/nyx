@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getAgents, createTask, createAgentWS, type Agent, type Task } from "../api/client";
 import { Send, Wifi, WifiOff, ChevronDown, Terminal } from "lucide-react";
 
@@ -7,16 +8,22 @@ interface Line { type: "cmd" | "output" | "error" | "info" | "system"; text: str
 const HELP = `Commands:
   shell <cmd>     run a shell command
   sysinfo         system information
-  whoami          current user
-  pwd / ls / cat  filesystem
-  ps / env        process & environment
+  whoami / pwd / ls / cat / ps / env
   download <path> download file from agent
-  persist         install persistence
-  unpersist       remove persistence
+  persist / unpersist
   sleep <sec>     set beacon interval
   kill            terminate agent
-  clear           clear console
-  help            show this message`.trim();
+  clear / help`.trim();
+
+const lineStyle = (type: string): React.CSSProperties => {
+  switch (type) {
+    case "cmd":    return { color: "#1E3CB8", fontWeight: 500 };
+    case "output": return { color: "#0A6B4A" };
+    case "error":  return { color: "#B82828" };
+    case "system": return { color: "#A85F0A", fontWeight: 600 };
+    default:       return { color: "#8C95A8" };
+  }
+};
 
 export default function Console() {
   const [agents, setAgents]       = useState<Agent[]>([]);
@@ -93,23 +100,14 @@ export default function Console() {
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") { send(); return; }
-    if (e.key === "ArrowUp")   { const i = Math.min(histIdx+1, history.length-1); setHistIdx(i); setCommand(history[i] ?? ""); }
-    if (e.key === "ArrowDown") { const i = Math.max(histIdx-1, -1); setHistIdx(i); setCommand(i === -1 ? "" : history[i]); }
-  };
-
-  const lineStyle = (type: string): React.CSSProperties => {
-    switch (type) {
-      case "cmd":    return { color: "#1E3CB8", fontWeight: 500 };
-      case "output": return { color: "#0A6B4A" };
-      case "error":  return { color: "#B82828" };
-      case "system": return { color: "#A85F0A", fontWeight: 600 };
-      default:       return { color: "#8C95A8" };
-    }
+    if (e.key === "ArrowUp")   { const i = Math.min(histIdx + 1, history.length - 1); setHistIdx(i); setCommand(history[i] ?? ""); }
+    if (e.key === "ArrowDown") { const i = Math.max(histIdx - 1, -1); setHistIdx(i); setCommand(i === -1 ? "" : history[i]); }
   };
 
   return (
-    <div className="flex flex-col h-full p-7 gap-4 bg-nyx-bg" style={{ height: "100vh" }}>
-      <div className="flex items-center justify-between flex-shrink-0">
+    <div className="flex flex-col bg-nyx-bg" style={{ height: "100vh", padding: "28px", gap: "16px" }}>
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+        className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white" style={{ border: "1px solid #E5DDD0", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
             <Terminal size={14} className="text-nyx-accent" />
@@ -120,11 +118,12 @@ export default function Console() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
+          <motion.div whileHover={{ scale: 1.03 }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold cursor-default"
             style={{ background: wsLive ? "#EDFAF4" : "#F4F2EE", border: `1px solid ${wsLive ? "rgba(10,107,74,0.2)" : "#E5DDD0"}`, color: wsLive ? "#0A6B4A" : "#8C95A8" }}>
             {wsLive ? <Wifi size={11} /> : <WifiOff size={11} />}
             {wsLive ? "Live" : "Polling"}
-          </div>
+          </motion.div>
           <div className="relative">
             <select value={selectedAgent} onChange={e => setAgent(e.target.value)}
               className="appearance-none input-base rounded-xl px-4 py-2 pr-8 text-sm mono cursor-pointer">
@@ -134,32 +133,50 @@ export default function Console() {
             <ChevronDown size={13} className="absolute right-3 top-2.5 text-nyx-muted pointer-events-none" />
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* terminal area — white card with light bg */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.99 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
         className="flex-1 rounded-2xl p-5 overflow-y-auto mono text-sm cursor-text bg-white"
         style={{ border: "1px solid #E5DDD0", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", minHeight: 0 }}
         onClick={() => inputRef.current?.focus()}
       >
-        {lines.map((l, i) => (
-          <div key={i} className="flex gap-3 mb-0.5 leading-6">
-            <span className="text-nyx-muted text-xs w-16 flex-shrink-0 pt-0.5 select-none">{l.time}</span>
-            <span className="whitespace-pre-wrap break-all" style={lineStyle(l.type)}>{l.text}</span>
-          </div>
-        ))}
+        <AnimatePresence initial={false}>
+          {lines.map((l, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.15 }}
+              className="flex gap-3 mb-0.5 leading-6"
+            >
+              <span className="text-nyx-muted text-xs w-16 flex-shrink-0 pt-0.5 select-none">{l.time}</span>
+              <span className="whitespace-pre-wrap break-all" style={lineStyle(l.type)}>{l.text}</span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {loading && (
-          <div className="flex gap-3 leading-6">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 leading-6">
             <span className="w-16 flex-shrink-0" />
-            <span className="animate-pulse" style={{ color: "#A85F0A" }}>waiting for agent…</span>
-          </div>
+            <span className="flex items-center gap-1.5" style={{ color: "#A85F0A" }}>
+              <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity }}>●</motion.span>
+              <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}>●</motion.span>
+              <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }}>●</motion.span>
+              <span className="ml-1">waiting for agent</span>
+            </span>
+          </motion.div>
         )}
         <div ref={bottomRef} />
-      </div>
+      </motion.div>
 
-      <div className="flex gap-3 flex-shrink-0">
-        <div className="flex-1 flex items-center gap-3 bg-white rounded-xl px-4 transition-all duration-150"
-          style={{ border: "1px solid #E5DDD0", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3 }}
+        className="flex gap-3 flex-shrink-0">
+        <motion.div
+          className="flex-1 flex items-center gap-3 bg-white rounded-xl px-4"
+          style={{ border: "1px solid #E5DDD0", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+          >
           <span className="text-nyx-accent mono text-sm select-none font-bold">$</span>
           <input
             ref={inputRef}
@@ -170,12 +187,19 @@ export default function Console() {
             className="flex-1 bg-transparent mono text-nyx-text text-sm py-3 focus:outline-none placeholder:text-nyx-muted"
             autoFocus
           />
-        </div>
-        <button onClick={send} disabled={loading || !selectedAgent}
-          className="btn-primary w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Send size={14} />
-        </button>
-      </div>
+        </motion.div>
+        <motion.button
+          onClick={send}
+          disabled={loading || !selectedAgent}
+          whileHover={{ scale: 1.04, boxShadow: "0 6px 20px rgba(30,60,184,0.3)" }}
+          whileTap={{ scale: 0.94 }}
+          className="btn-primary ripple w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+        >
+          <motion.span animate={loading ? { rotate: 360 } : {}} transition={loading ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}>
+            <Send size={14} />
+          </motion.span>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
