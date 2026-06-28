@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Zap } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -26,14 +26,14 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
       {/* logo */}
       <div className="px-5 py-5 border-b border-nyx-border">
         <div className="flex items-center gap-3">
-          <motion.div
-            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.05 }}
-            transition={{ duration: 0.4 }}
-            className="w-8 h-8 rounded-lg flex items-center justify-center cursor-default"
-            style={{ background: "linear-gradient(145deg, #2546CC, #1E3CB8)", boxShadow: "0 2px 8px rgba(30,60,184,0.3)" }}
-          >
-            <Zap size={14} className="text-white" />
-          </motion.div>
+          <motion.img
+            src="/logo.png"
+            alt="Nyx"
+            whileHover={{ scale: 1.08, rotate: -3 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            className="w-9 h-9 rounded-xl cursor-default object-cover"
+            style={{ boxShadow: "0 2px 8px rgba(30,60,184,0.25)" }}
+          />
           <div>
             <div className="text-nyx-text font-semibold text-sm" style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.01em" }}>Nyx C2</div>
             <div className="text-nyx-muted text-xs mono">v0.2.0</div>
