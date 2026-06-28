@@ -1,15 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Agents from "./pages/Agents";
+import Tasks from "./pages/Tasks";
 import Console from "./pages/Console";
 import Login from "./pages/Login";
-
-const pages: Record<string, React.ReactElement> = {
-  dashboard: <Dashboard />,
-  agents: <Agents />,
-  console: <Console />,
-};
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
@@ -17,14 +12,28 @@ export default function App() {
 
   if (!authed) return <Login onLogin={() => setAuthed(true)} />;
 
+  const renderPage = () => {
+    switch (page) {
+      case "dashboard": return <Dashboard />;
+      case "agents":    return <Agents onNavigateConsole={() => setPage("console")} />;
+      case "tasks":     return <Tasks />;
+      case "console":   return <Console />;
+      default:          return <Dashboard />;
+    }
+  };
+
   return (
     <div className="flex h-screen bg-nyx-bg overflow-hidden">
-      <Sidebar activePage={page} onNavigate={setPage} onLogout={() => {
-        localStorage.removeItem("nyx_token");
-        setAuthed(false);
-      }} />
-      <main className="flex-1 overflow-y-auto">
-        {pages[page] ?? <Dashboard />}
+      <Sidebar
+        activePage={page}
+        onNavigate={setPage}
+        onLogout={() => {
+          localStorage.removeItem("nyx_token");
+          setAuthed(false);
+        }}
+      />
+      <main className="flex-1 overflow-hidden">
+        {renderPage()}
       </main>
     </div>
   );
