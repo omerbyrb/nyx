@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Agents from "./pages/Agents";
 import Tasks from "./pages/Tasks";
 import Console from "./pages/Console";
+import Builder from "./pages/Builder";
 import Login from "./pages/Login";
 
 const pageVariants = {
@@ -25,6 +26,7 @@ export default function App() {
       case "agents":    return <Agents onNavigateConsole={() => setPage("console")} />;
       case "tasks":     return <Tasks />;
       case "console":   return <Console />;
+      case "builder":   return <Builder />;
       default:          return <Dashboard />;
     }
   };

@@ -1,0 +1,26 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    volumes:
+      - nyx_data:/app/data
+    environment:
+      - NYX_SECRET_KEY=${NYX_SECRET_KEY:-change-me-in-production}
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  nyx_data:
