@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -12,6 +12,7 @@ const navItems = [
   { id: "agents",    label: "Agents",    icon: Cpu },
   { id: "tasks",     label: "Tasks",     icon: Activity },
   { id: "console",   label: "Console",   icon: Terminal },
+  { id: "builder",   label: "Builder",   icon: Package },
 ];
 
 export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarProps) {

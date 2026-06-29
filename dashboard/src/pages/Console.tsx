@@ -9,8 +9,12 @@ const HELP = `Commands:
   shell <cmd>     run a shell command
   sysinfo         system information
   whoami / pwd / ls / cat / ps / env
-  download <path> download file from agent
-  persist / unpersist
+  netstat         active network connections
+  ifconfig        network interfaces
+  download <path> exfiltrate file from agent
+  screenshot      capture agent screen
+  persist         install persistence
+  unpersist       remove persistence
   sleep <sec>     set beacon interval
   kill            terminate agent
   clear / help`.trim();

