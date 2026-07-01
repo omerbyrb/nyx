@@ -6,10 +6,11 @@ from api.tasks import router as tasks_router
 from api.auth import router as auth_router
 from api.ws import router as ws_router
 from api.builder import router as builder_router
+from api.reports import router as reports_router
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Nyx C2", version="0.2.0", docs_url="/docs")
+app = FastAPI(title="Nyx C2", version="0.3.0", docs_url="/docs")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +25,8 @@ app.include_router(agents_router)
 app.include_router(tasks_router)
 app.include_router(ws_router)
 app.include_router(builder_router)
+app.include_router(reports_router)
 
 @app.get("/")
 def root():
-    return {"name": "Nyx C2 Server", "version": "0.2.0", "status": "online"}
+    return {"name": "Nyx C2 Server", "version": "0.3.0", "status": "online"}

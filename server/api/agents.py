@@ -95,3 +95,44 @@ def update_sleep(agent_id: str, sleep: int, jitter: int = 1, db: Session = Depen
     agent.jitter = str(jitter)
     db.commit()
     return {"status": "ok"}
+
+
+class AgentNotesUpdate(BaseModel):
+    notes: str = ""
+    tags: str = ""
+
+
+@router.patch("/{agent_id}/notes")
+def update_notes(agent_id: str, data: AgentNotesUpdate, db: Session = Depends(get_db)):
+    agent = db.query(Agent).filter(Agent.id == agent_id).first()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    agent.notes = data.notes
+    agent.tags = data.tags
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.delete("/{agent_id}")
+def delete_agent(agent_id: str, db: Session = Depends(get_db)):
+    agent = db.query(Agent).filter(Agent.id == agent_id).first()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    db.query(Task).filter(Task.agent_id == agent_id).delete()
+    db.delete(agent)
+    db.commit()
+    return {"status": "deleted"}
+
+
+@router.post("/heartbeat-check")
+def heartbeat_check(db: Session = Depends(get_db)):
+    """Mark agents as inactive if not seen in 5 minutes."""
+    from datetime import timedelta
+    threshold = datetime.utcnow() - timedelta(minutes=5)
+    stale = db.query(Agent).filter(Agent.last_seen < threshold, Agent.is_active == True).all()
+    count = 0
+    for a in stale:
+        a.is_active = False
+        count += 1
+    db.commit()
+    return {"marked_inactive": count}

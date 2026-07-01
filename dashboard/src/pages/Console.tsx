@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getAgents, createTask, createAgentWS, type Agent, type Task } from "../api/client";
 import { Send, Wifi, WifiOff, ChevronDown, Terminal } from "lucide-react";
 
-interface Line { type: "cmd" | "output" | "error" | "info" | "system"; text: string; time?: string; }
+interface Line { type: "cmd" | "output" | "error" | "info" | "system" | "screenshot"; text: string; time?: string; }
 
 const HELP = `Commands:
   shell <cmd>     run a shell command
@@ -61,7 +61,12 @@ export default function Console() {
     ws.onmessage = e => {
       const ev = JSON.parse(e.data);
       if (ev.type === "task_update" && ev.task_id === pendingRef.current) {
-        push({ type: ev.status === "failed" ? "error" : "output", text: ev.output || "(no output)" });
+        const out: string = ev.output || "(no output)";
+        if (out.startsWith("SCREENSHOT:BASE64:")) {
+          push({ type: "screenshot", text: out.replace("SCREENSHOT:BASE64:", "") });
+        } else {
+          push({ type: ev.status === "failed" ? "error" : "output", text: out });
+        }
         setLoading(false); pendingRef.current = null;
       }
     };
@@ -94,7 +99,12 @@ export default function Console() {
           await new Promise(r => setTimeout(r, 1000));
           const res = await fetch(`http://localhost:8000/api/tasks/${task.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem("nyx_token")}` } }).then(r => r.json()) as Task;
           if (res.status !== "pending" && res.status !== "running") {
-            push({ type: res.status === "failed" ? "error" : "output", text: res.output || "(no output)" });
+            const out = res.output || "(no output)";
+            if (out.startsWith("SCREENSHOT:BASE64:")) {
+              push({ type: "screenshot", text: out.replace("SCREENSHOT:BASE64:", "") });
+            } else {
+              push({ type: res.status === "failed" ? "error" : "output", text: out });
+            }
             setLoading(false); pendingRef.current = null; break;
           }
         }
@@ -154,10 +164,36 @@ export default function Console() {
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.15 }}
-              className="flex gap-3 mb-0.5 leading-6"
+              className="flex gap-3 mb-1 leading-6"
             >
               <span className="text-nyx-muted text-xs w-16 flex-shrink-0 pt-0.5 select-none">{l.time}</span>
-              <span className="whitespace-pre-wrap break-all" style={lineStyle(l.type)}>{l.text}</span>
+              {l.type === "screenshot" ? (
+                <div className="flex flex-col gap-2">
+                  <span style={{ color: "#0A6B4A", fontSize: "0.75rem" }}>📸 Screenshot captured</span>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="rounded-xl overflow-hidden"
+                    style={{ border: "1px solid #E5DDD0", maxWidth: "640px", boxShadow: "0 2px 12px rgba(0,0,0,0.08)" }}
+                  >
+                    <img
+                      src={`data:image/png;base64,${l.text}`}
+                      alt="screenshot"
+                      style={{ width: "100%", display: "block" }}
+                    />
+                  </motion.div>
+                  <a
+                    href={`data:image/png;base64,${l.text}`}
+                    download="screenshot.png"
+                    style={{ color: "#1E3CB8", fontSize: "0.7rem", textDecoration: "underline" }}
+                  >
+                    ↓ download
+                  </a>
+                </div>
+              ) : (
+                <span className="whitespace-pre-wrap break-all" style={lineStyle(l.type)}>{l.text}</span>
+              )}
             </motion.div>
           ))}
         </AnimatePresence>

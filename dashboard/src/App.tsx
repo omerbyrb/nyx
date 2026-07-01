@@ -6,6 +6,7 @@ import Agents from "./pages/Agents";
 import Tasks from "./pages/Tasks";
 import Console from "./pages/Console";
 import Builder from "./pages/Builder";
+import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 
 const pageVariants = {
@@ -27,6 +28,7 @@ export default function App() {
       case "tasks":     return <Tasks />;
       case "console":   return <Console />;
       case "builder":   return <Builder />;
+      case "reports":   return <Reports />;
       default:          return <Dashboard />;
     }
   };

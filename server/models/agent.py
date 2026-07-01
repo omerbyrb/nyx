@@ -17,3 +17,5 @@ class Agent(Base):
     is_active = Column(Boolean, default=True)
     last_seen = Column(DateTime, server_default=func.now(), onupdate=func.now())
     created_at = Column(DateTime, server_default=func.now())
+    notes = Column(Text, default="")
+    tags = Column(String, default="")
