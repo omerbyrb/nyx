@@ -30,7 +30,12 @@
 | **HTTPS Support** | TLS with `--tls` flag on any port |
 | **Persistence** | macOS LaunchAgent / Linux cron / Windows Registry |
 | **File Transfer** | Download files from agents, upload files to agents |
-| **Screenshot** | Capture agent screen and receive as base64 |
+| **Screenshot Viewer** | Capture agent screen — renders inline as image in Console |
+| **IOC Export** | Full JSON report: IPs, hostnames, commands, file exfil, persistence flags |
+| **YARA Rules** | Auto-generated detection rules for agent binary + network traffic + persistence |
+| **MITRE ATT&CK** | TTPs automatically mapped from executed commands |
+| **Agent Notes & Tags** | Annotate compromised hosts with custom notes and color tags |
+| **Heartbeat Detection** | Agents auto-marked inactive after 5-minute silence |
 | **Operator Dashboard** | React + Framer Motion UI with live agent monitoring |
 | **Docker Deploy** | Single `docker compose up` deployment |
 
@@ -150,10 +155,14 @@ Generate a compiled agent binary directly from the dashboard:
 - [x] Persistence (macOS/Linux/Windows)
 - [x] Payload builder UI
 - [x] Docker deployment
-- [ ] Process injection module
+- [x] IOC export (JSON) with MITRE ATT&CK TTP mapping
+- [x] YARA rule generation (binary + network + persistence)
+- [x] Screenshot inline viewer in Console
+- [x] Agent notes & tags
+- [x] Heartbeat dead-agent detection
+- [ ] Process injection module (Windows/Linux)
 - [ ] Payload obfuscation / AV evasion
 - [ ] Lateral movement helpers
-- [ ] IOC export / YARA rule generation
 - [ ] Multi-operator support
 - [ ] DNS-over-HTTPS beacon channel
 

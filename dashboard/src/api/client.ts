@@ -25,6 +25,8 @@ export interface Agent {
   is_active: boolean;
   last_seen: string;
   created_at: string;
+  notes?: string;
+  tags?: string;
 }
 
 export interface Task {
@@ -49,3 +51,18 @@ export const createTask = (agent_id: string, command: string) =>
 
 export const createAgentWS = (agentId: string) =>
   new WebSocket(`ws://localhost:8000/ws/agents/${agentId}`);
+
+export const updateAgentNotes = (id: string, notes: string, tags: string) =>
+  api.patch(`/api/agents/${id}/notes`, { notes, tags }).then((r) => r.data);
+
+export const deleteAgent = (id: string) =>
+  api.delete(`/api/agents/${id}`).then((r) => r.data);
+
+export const getIOCReport = () =>
+  api.get("/api/reports/ioc").then((r) => r.data);
+
+export const getYARARule = () =>
+  api.get("/api/reports/yara").then((r) => r.data);
+
+export const heartbeatCheck = () =>
+  api.post("/api/agents/heartbeat-check").then((r) => r.data);

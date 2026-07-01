@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -13,6 +13,7 @@ const navItems = [
   { id: "tasks",     label: "Tasks",     icon: Activity },
   { id: "console",   label: "Console",   icon: Terminal },
   { id: "builder",   label: "Builder",   icon: Package },
+  { id: "reports",   label: "Reports",   icon: FileText },
 ];
 
 export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarProps) {
@@ -37,7 +38,7 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
           />
           <div>
             <div className="text-nyx-text font-semibold text-sm" style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.01em" }}>Nyx C2</div>
-            <div className="text-nyx-muted text-xs mono">v0.2.0</div>
+            <div className="text-nyx-muted text-xs mono">v0.3.0</div>
           </div>
         </div>
       </div>
