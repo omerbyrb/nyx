@@ -1,0 +1,17 @@
+name: amazon-s3
+description: "Mimics AWS S3 REST API traffic"
+http:
+  user_agent: "aws-sdk-go/1.44.116 (go1.20.5; linux; amd64)"
+  content_type: "application/octet-stream"
+  headers:
+    X-Amz-Content-SHA256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    X-Amz-Date: "20240101T000000Z"
+    Authorization: "AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20240101/us-east-1/s3/aws4_request"
+  uris:
+    checkin: "/2006-03-01/bucket/nyx-ops-logs/object/{id}"
+    task:    "/2006-03-01/bucket/nyx-ops-logs/notification/{id}"
+    result:  "/2006-03-01/bucket/nyx-ops-logs/multipart/{id}"
+  response:
+    content_type: "application/xml"
+    prefix: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><PutObjectResponse><Location>https://s3.amazonaws.com/nyx-ops-logs/</Location><ETag>\""
+    suffix: "\"</ETag><VersionId>null</VersionId></PutObjectResponse>"

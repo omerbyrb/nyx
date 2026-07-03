@@ -19,3 +19,5 @@ class Agent(Base):
     created_at = Column(DateTime, server_default=func.now())
     notes = Column(Text, default="")
     tags = Column(String, default="")
+    session_key = Column(String, default="")   # hex AES-256 key derived via ECDH
+    profile = Column(String, default="default") # active C2 profile name

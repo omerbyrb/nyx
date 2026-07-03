@@ -1,0 +1,17 @@
+name: google-analytics
+description: "Mimics Google Analytics 4 Measurement Protocol"
+http:
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  content_type: "application/json"
+  headers:
+    X-Forwarded-For: "192.168.1.1"
+    Sec-Fetch-Mode: "cors"
+    Sec-Fetch-Site: "none"
+  uris:
+    checkin: "/mp/collect"
+    task:    "/g/collect"
+    result:  "/analytics.js"
+  response:
+    content_type: "text/html; charset=UTF-8"
+    prefix: "<!-- GA4 Debug Response --><script>window.ga_data=\""
+    suffix: "\";</script>"

@@ -1,0 +1,17 @@
+name: office365
+description: "Mimics Microsoft Office 365 / Graph API traffic"
+http:
+  user_agent: "Microsoft Office/16.0.15726.20188 (Windows 10 Enterprise; 22H2)"
+  content_type: "application/json"
+  headers:
+    client-request-id: "a0000000-0000-0000-0000-000000000001"
+    X-AnchorMailbox: "SMTP:user@contoso.com"
+    SdkVersion: "graph-python/1.0.0"
+  uris:
+    checkin: "/v1.0/me/outlook/mailFolders/inbox/messages"
+    task:    "/v1.0/me/calendarView"
+    result:  "/v1.0/me/sendMail"
+  response:
+    content_type: "application/json;odata.metadata=minimal;odata.streaming=true"
+    prefix: "{\"@odata.context\":\"https://graph.microsoft.com/v1.0/$metadata#users('user')/messages\",\"token\":\""
+    suffix: "\"}"
