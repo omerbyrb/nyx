@@ -9,6 +9,7 @@ import Builder from "./pages/Builder";
 import Reports from "./pages/Reports";
 import Admin from "./pages/Admin";
 import Loot from "./pages/Loot";
+import NetworkMap from "./pages/NetworkMap";
 import Login from "./pages/Login";
 
 const pageVariants = {
@@ -32,6 +33,7 @@ export default function App() {
       case "builder":   return <Builder />;
       case "reports":   return <Reports />;
       case "loot":      return <Loot />;
+      case "network":   return <NetworkMap />;
       case "admin":     return <Admin />;
       default:          return <Dashboard />;
     }

