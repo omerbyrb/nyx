@@ -38,6 +38,11 @@
 | **PrivEsc Enum** | sudo, SUID, cron, capabilities, docker group, Windows token privs, UAC |
 | **Loot Vault** | Unified view: downloaded files, screenshots, creds, scans, SSH results |
 | **DoH Beacon** | Secondary C2 channel over DNS-over-HTTPS (Cloudflare 1.1.1.1) |
+| **AES-256-GCM Encryption** | All agent↔server traffic encrypted at application layer (opt-in) |
+| **Shellcode Loader** | In-process shellcode execution via mmap (Linux/macOS) / VirtualAlloc (Windows) |
+| **SMB / WMI / PSExec** | Windows lateral movement: net use + WMIC + PowerShell Remoting |
+| **SAM Dump** | Windows credential dump via reg save (requires SYSTEM) |
+| **Network Map** | SVG topology visualization of scanned hosts with port legend |
 | **Screenshot Viewer** | Capture agent screen — renders inline as image in Console |
 | **IOC Export** | Full JSON report: IPs, hostnames, commands, file exfil, persistence flags |
 | **YARA Rules** | Auto-generated detection rules for agent binary + network traffic + persistence |
@@ -177,9 +182,11 @@ Generate a compiled agent binary directly from the dashboard:
 - [x] Privilege escalation enumeration (sudo, SUID, capabilities, Windows tokens)
 - [x] Loot vault UI — files, screenshots, credentials, scans, SSH results
 - [x] DNS-over-HTTPS secondary beacon (Cloudflare DoH, opt-in via ldflags)
-- [ ] Reflective DLL injection / shellcode loader
-- [ ] SMB/WMI lateral movement
-- [ ] C2 traffic encryption (AES-GCM over HTTP)
+- [x] AES-256-GCM application-layer traffic encryption (opt-in via NYX_ENC_KEY)
+- [x] In-process shellcode loader (mmap RWX on Linux/macOS, VirtualAlloc on Windows)
+- [x] Windows lateral movement — SMB exec (net use + file copy), WMI exec, PSExec (WinRM)
+- [x] Windows SAM database dump (reg save)
+- [x] Network topology map (SVG, interactive, built from scan results)
 
 ---
 

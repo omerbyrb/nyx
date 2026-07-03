@@ -9,8 +9,10 @@ from api.builder import router as builder_router
 from api.reports import router as reports_router
 from api.admin import router as admin_router
 from api.loot import router as loot_router
+from core.crypto import init_crypto
 
 Base.metadata.create_all(bind=engine)
+init_crypto()
 
 app = FastAPI(title="Nyx C2", version="0.3.0", docs_url="/docs")
 
@@ -33,4 +35,4 @@ app.include_router(loot_router)
 
 @app.get("/")
 def root():
-    return {"name": "Nyx C2 Server", "version": "0.3.0", "status": "online"}
+    return {"name": "Nyx C2 Server", "version": "0.5.0", "status": "online"}
