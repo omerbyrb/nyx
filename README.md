@@ -30,6 +30,9 @@
 | **HTTPS Support** | TLS with `--tls` flag on any port |
 | **Persistence** | macOS LaunchAgent / Linux cron / Windows Registry |
 | **File Transfer** | Download files from agents, upload files to agents |
+| **Process Injection** | Linux ptrace (remote mmap + shellcode write), Windows CreateRemoteThread |
+| **AV Evasion** | XOR string obfuscation of C2 URL with random per-build key |
+| **Multi-Operator RBAC** | admin / operator / readonly roles, operator management UI |
 | **Screenshot Viewer** | Capture agent screen — renders inline as image in Console |
 | **IOC Export** | Full JSON report: IPs, hostnames, commands, file exfil, persistence flags |
 | **YARA Rules** | Auto-generated detection rules for agent binary + network traffic + persistence |
@@ -160,11 +163,13 @@ Generate a compiled agent binary directly from the dashboard:
 - [x] Screenshot inline viewer in Console
 - [x] Agent notes & tags
 - [x] Heartbeat dead-agent detection
-- [ ] Process injection module (Windows/Linux)
-- [ ] Payload obfuscation / AV evasion
-- [ ] Lateral movement helpers
-- [ ] Multi-operator support
+- [x] Process injection — Linux (ptrace + remote mmap), Windows (VirtualAllocEx + CreateRemoteThread)
+- [x] Payload obfuscation — XOR string obfuscation of C2 URL with random per-build key
+- [x] Multi-operator RBAC (admin / operator / readonly roles)
+- [x] Operator management UI (create / edit role / disable / delete)
+- [ ] Lateral movement helpers (SMB/WMI exec)
 - [ ] DNS-over-HTTPS beacon channel
+- [ ] Shellcode loader (reflective DLL injection)
 
 ---
 

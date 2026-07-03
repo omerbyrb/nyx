@@ -7,6 +7,7 @@ import Tasks from "./pages/Tasks";
 import Console from "./pages/Console";
 import Builder from "./pages/Builder";
 import Reports from "./pages/Reports";
+import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 
 const pageVariants = {
@@ -29,6 +30,7 @@ export default function App() {
       case "console":   return <Console />;
       case "builder":   return <Builder />;
       case "reports":   return <Reports />;
+      case "admin":     return <Admin />;
       default:          return <Dashboard />;
     }
   };

