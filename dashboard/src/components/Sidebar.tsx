@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users, Archive } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -14,6 +14,7 @@ const navItems = [
   { id: "console",   label: "Console",   icon: Terminal },
   { id: "builder",   label: "Builder",   icon: Package },
   { id: "reports",   label: "Reports",   icon: FileText },
+  { id: "loot",      label: "Loot",      icon: Archive },
   { id: "admin",     label: "Operators", icon: Users },
 ];
 

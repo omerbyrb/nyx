@@ -5,19 +5,41 @@ import { Send, Wifi, WifiOff, ChevronDown, Terminal } from "lucide-react";
 
 interface Line { type: "cmd" | "output" | "error" | "info" | "system" | "screenshot"; text: string; time?: string; }
 
-const HELP = `Commands:
+const HELP = `NYX C2 — Command Reference
+
+  EXECUTION
   shell <cmd>              run a shell command
   sysinfo                  system information
-  whoami / pwd / ls / cat / ps / env
+  whoami / pwd / ls / cat / ps / env / arp
+
+  NETWORK
   netstat                  active network connections
   ifconfig                 network interfaces
-  download <path>          exfiltrate file from agent
+  portscan <host> [ports]  TCP port scanner (ports: "22,80" or "1-1024")
+  hostscan <prefix>        host discovery  e.g. hostscan 192.168.1
+
+  LATERAL MOVEMENT
+  ssh-exec <h:p> <u> <pw> <cmd>   execute command over SSH (password)
+  ssh-key-exec <h:p> <u> <k_b64> <cmd>  SSH with private key
+
+  CREDENTIAL HARVEST
+  creds                    harvest SSH keys, history, .env, AWS, kube, git
+  privesc                  enumerate privilege escalation vectors
+
+  EXFILTRATION
+  download <path>          exfiltrate file from agent (base64)
   upload <path> <b64>      upload file to agent
-  screenshot               capture agent screen
+  screenshot               capture agent screen (renders inline)
+
+  INJECTION
   inject <pid> <sc_b64>    inject shellcode into process
-  migrate <pid>            migrate agent to another process
-  persist                  install persistence
+  migrate <pid>            migrate agent into another process
+
+  PERSISTENCE
+  persist                  install persistence (LaunchAgent/cron/Registry)
   unpersist                remove persistence
+
+  CONTROL
   sleep <sec>              set beacon interval
   kill                     terminate agent
   clear / help`.trim();

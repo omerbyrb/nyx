@@ -33,6 +33,11 @@
 | **Process Injection** | Linux ptrace (remote mmap + shellcode write), Windows CreateRemoteThread |
 | **AV Evasion** | XOR string obfuscation of C2 URL with random per-build key |
 | **Multi-Operator RBAC** | admin / operator / readonly roles, operator management UI |
+| **Lateral Movement** | SSH exec (password + key), TCP port scanner, /24 host discovery |
+| **Credential Harvest** | SSH keys, shell history, AWS/GCP/Azure/K8s/Docker/git/npm creds |
+| **PrivEsc Enum** | sudo, SUID, cron, capabilities, docker group, Windows token privs, UAC |
+| **Loot Vault** | Unified view: downloaded files, screenshots, creds, scans, SSH results |
+| **DoH Beacon** | Secondary C2 channel over DNS-over-HTTPS (Cloudflare 1.1.1.1) |
 | **Screenshot Viewer** | Capture agent screen — renders inline as image in Console |
 | **IOC Export** | Full JSON report: IPs, hostnames, commands, file exfil, persistence flags |
 | **YARA Rules** | Auto-generated detection rules for agent binary + network traffic + persistence |
@@ -167,9 +172,14 @@ Generate a compiled agent binary directly from the dashboard:
 - [x] Payload obfuscation — XOR string obfuscation of C2 URL with random per-build key
 - [x] Multi-operator RBAC (admin / operator / readonly roles)
 - [x] Operator management UI (create / edit role / disable / delete)
-- [ ] Lateral movement helpers (SMB/WMI exec)
-- [ ] DNS-over-HTTPS beacon channel
-- [ ] Shellcode loader (reflective DLL injection)
+- [x] Lateral movement — SSH exec (password + key auth), TCP port scanner, host discovery
+- [x] Credential harvesting — SSH keys, shell history, cloud creds, Docker, Kubernetes
+- [x] Privilege escalation enumeration (sudo, SUID, capabilities, Windows tokens)
+- [x] Loot vault UI — files, screenshots, credentials, scans, SSH results
+- [x] DNS-over-HTTPS secondary beacon (Cloudflare DoH, opt-in via ldflags)
+- [ ] Reflective DLL injection / shellcode loader
+- [ ] SMB/WMI lateral movement
+- [ ] C2 traffic encryption (AES-GCM over HTTP)
 
 ---
 
