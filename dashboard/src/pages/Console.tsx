@@ -6,17 +6,20 @@ import { Send, Wifi, WifiOff, ChevronDown, Terminal } from "lucide-react";
 interface Line { type: "cmd" | "output" | "error" | "info" | "system" | "screenshot"; text: string; time?: string; }
 
 const HELP = `Commands:
-  shell <cmd>     run a shell command
-  sysinfo         system information
+  shell <cmd>              run a shell command
+  sysinfo                  system information
   whoami / pwd / ls / cat / ps / env
-  netstat         active network connections
-  ifconfig        network interfaces
-  download <path> exfiltrate file from agent
-  screenshot      capture agent screen
-  persist         install persistence
-  unpersist       remove persistence
-  sleep <sec>     set beacon interval
-  kill            terminate agent
+  netstat                  active network connections
+  ifconfig                 network interfaces
+  download <path>          exfiltrate file from agent
+  upload <path> <b64>      upload file to agent
+  screenshot               capture agent screen
+  inject <pid> <sc_b64>    inject shellcode into process
+  migrate <pid>            migrate agent to another process
+  persist                  install persistence
+  unpersist                remove persistence
+  sleep <sec>              set beacon interval
+  kill                     terminate agent
   clear / help`.trim();
 
 const lineStyle = (type: string): React.CSSProperties => {

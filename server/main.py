@@ -7,6 +7,7 @@ from api.auth import router as auth_router
 from api.ws import router as ws_router
 from api.builder import router as builder_router
 from api.reports import router as reports_router
+from api.admin import router as admin_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,6 +27,7 @@ app.include_router(tasks_router)
 app.include_router(ws_router)
 app.include_router(builder_router)
 app.include_router(reports_router)
+app.include_router(admin_router)
 
 @app.get("/")
 def root():

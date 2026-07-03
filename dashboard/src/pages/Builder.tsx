@@ -20,6 +20,7 @@ export default function Builder() {
   const [state, setState]       = useState<BuildState>("idle");
   const [error, setError]       = useState("");
   const [filename, setFilename] = useState("");
+  const [obfuscate, setObfuscate] = useState(false);
 
   const build = async () => {
     setState("building"); setError("");
@@ -28,7 +29,7 @@ export default function Builder() {
       const res = await fetch("http://localhost:8000/api/builder/build", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ c2_url: c2url, platform, sleep, jitter }),
+        body: JSON.stringify({ c2_url: c2url, platform, sleep, jitter, obfuscate }),
       });
 
       if (!res.ok) {
@@ -105,6 +106,21 @@ export default function Builder() {
               <input type="number" value={jitter} onChange={e => setJitter(+e.target.value)}
                 className="input-base w-full rounded-xl px-4 py-3 text-sm mono" min={0} max={60} />
               <p className="text-nyx-muted text-xs mt-1.5">Random sleep variance</p>
+            </div>
+          </div>
+
+          {/* Obfuscation toggle */}
+          <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F8F6F1", border: "1px solid #E5DDD0" }}>
+            <motion.button onClick={() => setObfuscate(v => !v)}
+              className="relative w-9 h-5 rounded-full flex-shrink-0 transition-colors"
+              style={{ background: obfuscate ? "#1E3CB8" : "#C5C9D4" }}
+              whileTap={{ scale: 0.95 }}>
+              <motion.div animate={{ x: obfuscate ? 16 : 2 }} transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="absolute top-0.5 w-4 h-4 rounded-full bg-white" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+            </motion.button>
+            <div>
+              <p className="text-nyx-text text-xs font-semibold">XOR String Obfuscation</p>
+              <p className="text-nyx-muted text-xs mt-0.5">Hides C2 URL from static analysis — generates a random XOR key per build</p>
             </div>
           </div>
 

