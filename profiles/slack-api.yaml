@@ -1,0 +1,17 @@
+name: slack-api
+description: "Mimics Slack Web API traffic"
+http:
+  user_agent: "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)"
+  content_type: "application/json; charset=utf-8"
+  headers:
+    Authorization: "Bearer xoxb-not-a-real-token-0000000000"
+    X-Slack-Request-Timestamp: "1704067200"
+    X-Slack-Signature: "v0=a2114d57b48eac39b9ad189dd8316235a7b4a8d21a10bd27519666489c69b503"
+  uris:
+    checkin: "/api/conversations.join"
+    task:    "/api/conversations.history"
+    result:  "/api/chat.postMessage"
+  response:
+    content_type: "application/json; charset=utf-8"
+    prefix: "{\"ok\":true,\"channel\":{\"id\":\"C024BE91L\",\"name\":\"ops\"},\"data\":\""
+    suffix: "\"}"

