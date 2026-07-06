@@ -36,6 +36,12 @@ export default function Builder() {
   const [profiles, setProfiles]   = useState<Profile[]>([]);
   const [killDate, setKillDate]   = useState("");
   const [buildStager, setBuildStager] = useState(false);
+  const [enableAmsi, setEnableAmsi]   = useState(false);
+  const [enableEtw, setEnableEtw]     = useState(false);
+  const [enablePpid, setEnablePpid]   = useState(false);
+  const [ppidTarget, setPpidTarget]   = useState("explorer.exe");
+  const [enableSleepMask, setEnableSleepMask] = useState(false);
+  const [enableSyscalls, setEnableSyscalls]   = useState(false);
 
   useEffect(() => {
     api.get<Profile[]>("/api/profiles/").then(r => setProfiles(r.data)).catch(() => {});
@@ -52,6 +58,9 @@ export default function Builder() {
           c2_url: c2url, platform, sleep, jitter,
           obfuscate, profile, kill_date: killDate,
           jitter_mode: jitterMode, build_stager: buildStager,
+          enable_amsi: enableAmsi, enable_etw: enableEtw,
+          enable_ppid: enablePpid, ppid_target: ppidTarget,
+          enable_sleep_mask: enableSleepMask, enable_syscalls: enableSyscalls,
         }),
       });
       if (!res.ok) {
@@ -190,7 +199,7 @@ export default function Builder() {
             <p className="text-nyx-muted text-xs mt-1.5">Agent self-terminates after this date</p>
           </div>
 
-          {/* Toggles */}
+          {/* Payload Options */}
           <div className="space-y-2">
             <Toggle value={obfuscate} onChange={() => setObfuscate(v => !v)}
               label="XOR String Obfuscation"
@@ -198,6 +207,42 @@ export default function Builder() {
             <Toggle value={buildStager} onChange={() => setBuildStager(v => !v)}
               label="Build Stager Instead"
               desc="Minimal first-stage loader — downloads full agent from C2 on execution" />
+          </div>
+
+          {/* EDR Evasion — Windows only */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
+              <span className="text-nyx-muted text-xs font-semibold uppercase" style={{ letterSpacing: "0.08em" }}>
+                EDR Evasion · Windows
+              </span>
+              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
+            </div>
+            <div className="space-y-2">
+              <Toggle value={enableAmsi} onChange={() => setEnableAmsi(v => !v)}
+                label="AMSI Bypass"
+                desc="Patches AmsiScanBuffer on startup — PowerShell/script scanning disabled" />
+              <Toggle value={enableEtw} onChange={() => setEnableEtw(v => !v)}
+                label="ETW Patching"
+                desc="Patches EtwEventWrite — blinds EDR telemetry channel" />
+              <Toggle value={enableSleepMask} onChange={() => setEnableSleepMask(v => !v)}
+                label="Sleep Masking"
+                desc="XOR-encrypts sensitive strings in memory while agent sleeps" />
+              <Toggle value={enableSyscalls} onChange={() => setEnableSyscalls(v => !v)}
+                label="Hell's Gate (Direct Syscalls)"
+                desc="Resolves NT syscall numbers from ntdll — bypasses EDR API hooks" />
+              <Toggle value={enablePpid} onChange={() => setEnablePpid(v => !v)}
+                label="PPID Spoofing"
+                desc="Spawned processes appear as children of a trusted parent process" />
+              {enablePpid && (
+                <div className="pl-12">
+                  <label className="block text-nyx-muted text-xs mb-1.5">Parent process name</label>
+                  <input value={ppidTarget} onChange={e => setPpidTarget(e.target.value)}
+                    className="input-base w-full rounded-xl px-3 py-2 text-xs mono"
+                    placeholder="explorer.exe" />
+                </div>
+              )}
+            </div>
           </div>
 
           <motion.button onClick={build} disabled={state === "building"}
@@ -270,6 +315,11 @@ export default function Builder() {
               ["Kill Date",   killDate || "None"],
               ["Obfuscate",   obfuscate ? "XOR (per-build key)" : "No"],
               ["Type",        buildStager ? "Stager" : "Full Agent"],
+              ["AMSI Bypass", enableAmsi ? "✓" : "—"],
+              ["ETW Patch",   enableEtw ? "✓" : "—"],
+              ["Sleep Mask",  enableSleepMask ? "✓" : "—"],
+              ["Syscalls",    enableSyscalls ? "Hell's Gate" : "—"],
+              ["PPID Spoof",  enablePpid ? ppidTarget : "—"],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between items-center py-1.5 border-b border-nyx-border last:border-0">
                 <span className="text-nyx-muted text-xs font-medium">{k}</span>
