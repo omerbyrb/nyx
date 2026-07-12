@@ -257,15 +257,44 @@ export default function Builder() {
             <div className="rounded-xl p-3 space-y-2" style={{ background: "#F8F6F1", border: "1px solid #E5DDD0" }}>
               <p className="text-nyx-muted text-xs font-medium mb-2">Capabilities compiled into this agent:</p>
               {[
-                ["Process Hollowing",       "hollow / hollow-pe — inject shellcode or PE into a suspended process"],
-                ["Token Impersonation",     "token-steal/make/revert/spawn — steal or forge Windows access tokens"],
-                ["BOF / COFF Loader",       "bof — execute Beacon Object Files in-process (CS-compatible)"],
-                ["Reflective DLL",          "refdll — map a DLL from memory without touching disk"],
-                ["Kerberoasting",           "kerb-roast <SPN> — extract TGS hash for offline cracking"],
-                ["AS-REP Roasting",         "asrep-roast <user> <domain> <dc> — extract AS-REP hash"],
+                ["Process Hollowing",   "hollow / hollow-pe — inject shellcode or PE into a suspended process"],
+                ["Token Impersonation", "token-steal/make/revert/spawn — steal or forge Windows access tokens"],
+                ["BOF / COFF Loader",   "bof — execute Beacon Object Files in-process (CS-compatible)"],
+                ["Reflective DLL",      "refdll — map a DLL from memory without touching disk"],
+                ["Kerberoasting",       "kerb-roast <SPN> — extract TGS hash for offline cracking"],
+                ["AS-REP Roasting",     "asrep-roast <user> <domain> <dc> — extract AS-REP hash"],
               ].map(([name, desc]) => (
                 <div key={name} className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#1E3CB8" }} />
+                  <div>
+                    <span className="text-nyx-text text-xs font-semibold">{name}</span>
+                    <span className="text-nyx-muted text-xs"> — {desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Phase 4: P2P & Pivot */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
+              <span className="text-nyx-muted text-xs font-semibold uppercase" style={{ letterSpacing: "0.08em" }}>
+                P2P &amp; Pivot · v0.9.0
+              </span>
+              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
+            </div>
+            <div className="rounded-xl p-3 space-y-2" style={{ background: "#F8F6F1", border: "1px solid #E5DDD0" }}>
+              <p className="text-nyx-muted text-xs font-medium mb-2">Pivot infrastructure — all platforms unless noted:</p>
+              {[
+                ["SOCKS5 Proxy",       "socks5-start <port> [user pass] — in-agent proxy, route tools via proxychains"],
+                ["Port Forward",       "pfwd-start <local> <remote:port> — tunnel internal services to operator"],
+                ["SMB Named Pipe C2",  "(Windows) smb-pipe-listen / smb-pipe-connect — chain agents over LAN"],
+                ["DNS Beacon",         "dns-beacon-start <domain> — fallback C2 via TXT record polling"],
+                ["DNS Data Exfil",     "results chunked into DNS label queries → server reassembles"],
+              ].map(([name, desc]) => (
+                <div key={name} className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#0A6B4A" }} />
                   <div>
                     <span className="text-nyx-text text-xs font-semibold">{name}</span>
                     <span className="text-nyx-muted text-xs"> — {desc}</span>

