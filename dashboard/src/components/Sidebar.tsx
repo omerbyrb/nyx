@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users, Archive, Globe } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users, Archive, Globe, Brain } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -15,8 +15,9 @@ const navItems = [
   { id: "builder",   label: "Builder",   icon: Package },
   { id: "reports",   label: "Reports",   icon: FileText },
   { id: "loot",      label: "Loot",      icon: Archive },
-  { id: "network",   label: "Network",   icon: Globe },
-  { id: "admin",     label: "Operators", icon: Users },
+  { id: "network",      label: "Network",      icon: Globe },
+  { id: "intelligence", label: "Intelligence", icon: Brain },
+  { id: "admin",        label: "Operators",    icon: Users },
 ];
 
 export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarProps) {
@@ -41,7 +42,7 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
           />
           <div>
             <div className="text-nyx-text font-semibold text-sm" style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.01em" }}>Nyx C2</div>
-            <div className="text-nyx-muted text-xs mono">v0.3.0</div>
+            <div className="text-nyx-muted text-xs mono">v1.0.0</div>
           </div>
         </div>
       </div>

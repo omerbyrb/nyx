@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Boolean, Text
+from sqlalchemy import Column, String, DateTime, Boolean, Text, Float
 from sqlalchemy.sql import func
 from db.database import Base
 import uuid
@@ -21,3 +21,11 @@ class Agent(Base):
     tags = Column(String, default="")
     session_key = Column(String, default="")   # hex AES-256 key derived via ECDH
     profile = Column(String, default="default") # active C2 profile name
+    # ── GeoIP ─────────────────────────────────────────────────────────────────
+    geo_country      = Column(String, default="")
+    geo_country_code = Column(String, default="")
+    geo_city         = Column(String, default="")
+    geo_isp          = Column(String, default="")
+    geo_lat          = Column(Float,  default=0.0)
+    geo_lon          = Column(Float,  default=0.0)
+    geo_flag         = Column(String, default="🌐")

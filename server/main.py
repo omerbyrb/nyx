@@ -11,6 +11,8 @@ from api.admin import router as admin_router
 from api.loot import router as loot_router
 from api.profiles import router as profiles_router
 from api.pivot import router as pivot_router
+from api.intelligence import router as intel_router
+from models.event import OperationEvent  # ensure table is created
 from core.crypto import init_crypto
 
 Base.metadata.create_all(bind=engine)
@@ -36,7 +38,8 @@ app.include_router(admin_router)
 app.include_router(loot_router)
 app.include_router(profiles_router)
 app.include_router(pivot_router)
+app.include_router(intel_router)
 
 @app.get("/")
 def root():
-    return {"name": "Nyx C2 Server", "version": "0.9.0", "status": "online"}
+    return {"name": "Nyx C2 Server", "version": "1.0.0", "status": "online"}
