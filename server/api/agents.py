@@ -89,7 +89,9 @@ async def agent_checkin(request: Request, db: Session = Depends(get_db)):
 
     server_pub = None
 
+    is_new = False
     if not agent:
+        is_new = True
         agent = Agent(
             hostname=data.hostname,
             username=data.username,
@@ -97,6 +99,20 @@ async def agent_checkin(request: Request, db: Session = Depends(get_db)):
             arch=data.arch,
             ip=data.ip,
         )
+        # GeoIP enrichment on first checkin
+        try:
+            from core.geoip import lookup, flag_emoji
+            geo = lookup(data.ip)
+            if geo:
+                agent.geo_country      = geo.get("country", "")
+                agent.geo_country_code = geo.get("country_code", "")
+                agent.geo_city         = geo.get("city", "")
+                agent.geo_isp          = geo.get("isp", "")
+                agent.geo_lat          = geo.get("lat", 0.0)
+                agent.geo_lon          = geo.get("lon", 0.0)
+                agent.geo_flag         = flag_emoji(geo.get("country_code", ""))
+        except Exception:
+            pass
         db.add(agent)
         db.flush()  # get agent.id
 
@@ -119,6 +135,21 @@ async def agent_checkin(request: Request, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(agent)
+
+    # Fire plugin hooks
+    try:
+        from core import plugin_loader
+        agent_dict = {
+            "id": agent.id, "hostname": agent.hostname, "username": agent.username,
+            "os": agent.os, "arch": agent.arch, "ip": agent.ip,
+            "geo_country": agent.geo_country, "geo_flag": agent.geo_flag,
+        }
+        if is_new:
+            plugin_loader.fire_agent_new(agent_dict)
+        else:
+            plugin_loader.fire_agent_checkin(agent_dict)
+    except Exception:
+        pass
 
     pending = db.query(Task).filter(
         Task.agent_id == agent.id,
@@ -162,6 +193,13 @@ async def submit_result(agent_id: str, request: Request, db: Session = Depends(g
     task.status = result.status
     task.completed_at = datetime.utcnow()
     db.commit()
+
+    # Log operation event for kill-chain timeline
+    try:
+        from api.intelligence import log_event
+        log_event(db, agent_id, task.id, task.command, result.output, result.status)
+    except Exception:
+        pass
 
     event = {
         "type": "task_update",
