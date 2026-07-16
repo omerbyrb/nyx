@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users, Archive, Globe, Brain } from "lucide-react";
+import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users, Archive, Globe, Brain, ShieldAlert } from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -17,6 +17,7 @@ const navItems = [
   { id: "loot",      label: "Loot",      icon: Archive },
   { id: "network",      label: "Network",      icon: Globe },
   { id: "intelligence", label: "Intelligence", icon: Brain },
+  { id: "persistence",  label: "Persistence",  icon: ShieldAlert },
   { id: "admin",        label: "Operators",    icon: Users },
 ];
 
