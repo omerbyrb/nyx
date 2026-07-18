@@ -43,7 +43,7 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
           />
           <div>
             <div className="text-nyx-text font-semibold text-sm" style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.01em" }}>Nyx C2</div>
-            <div className="text-nyx-muted text-xs mono">v1.0.0</div>
+            <div className="text-nyx-muted text-xs mono">v1.2.0</div>
           </div>
         </div>
       </div>
