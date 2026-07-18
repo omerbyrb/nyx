@@ -45,4 +45,4 @@ app.include_router(persistence_router)
 
 @app.get("/")
 def root():
-    return {"name": "Nyx C2 Server", "version": "1.1.0", "status": "online"}
+    return {"name": "Nyx C2 Server", "version": "1.2.0", "status": "online"}

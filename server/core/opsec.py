@@ -71,7 +71,13 @@ OPSEC_BASE_SCORES: dict[str, int] = {
     "token-list":      3,
 
     # Evasion patches — medium (patches memory, no disk artifacts)
-    "evasion":         6,
+    "evasion":                  6,
+    "evasion syscalls-init":    8,   # extracts SSNs, prepares stubs — high evasion value
+    "evasion unhook":           9,   # ntdll unhook removes EDR visibility
+    "evasion unhook-all":       9,
+    "evasion sandbox-check":    3,   # read-only heuristic check
+    "evasion sandbox-stall":    3,
+    "evasion api-hash":         2,
 
     # Privilege escalation check — medium
     "privesc":         4,
