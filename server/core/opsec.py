@@ -99,6 +99,14 @@ OPSEC_BASE_SCORES: dict[str, int] = {
     "dns-beacon-start":5,
     "dns-beacon-stop": 2,
 
+    # External C2 — low OPSEC risk (uses legitimate cloud platforms)
+    "extc2-github":    4,   # private gist; github.com TLS — hard to detect
+    "extc2-telegram":  3,   # telegram API; fully encrypted, very common traffic
+    "extc2-discord":   3,   # discord.com webhook; allowed by most firewalls
+    "extc2-slack":     3,   # slack.com webhook; universally allowed
+    "extc2-stop":      1,
+    "extc2-status":    1,
+
     # Kill — low (cleanup)
     "kill":            1,
 }
@@ -122,6 +130,8 @@ OPSEC_NOTES: dict[str, str] = {
     "socks5-start":    "Listening port may be detected by host firewall or NDR.",
     "dns-beacon-start":"DNS TXT lookups for uncommon domains may trigger DNS analytics.",
     "migrate":         "Process migration injects current binary into another — highly suspicious.",
+    "extc2-github":    "Calls api.github.com — very common, but gist token in memory is a credential risk.",
+    "extc2-telegram":  "Polls api.telegram.org — extremely common traffic, low detection probability.",
 }
 
 DEFAULT_SCORE = 5

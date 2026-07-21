@@ -12,6 +12,7 @@ import Loot from "./pages/Loot";
 import NetworkMap from "./pages/NetworkMap";
 import Intelligence from "./pages/Intelligence";
 import Persistence from "./pages/Persistence";
+import ExtC2 from "./pages/ExtC2";
 import Login from "./pages/Login";
 
 const pageVariants = {
@@ -38,6 +39,7 @@ export default function App() {
       case "network":       return <NetworkMap />;
       case "intelligence":  return <Intelligence />;
       case "persistence":   return <Persistence />;
+      case "extc2":         return <ExtC2 />;
       case "admin":         return <Admin />;
       default:          return <Dashboard />;
     }

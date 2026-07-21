@@ -13,6 +13,7 @@ from api.profiles import router as profiles_router
 from api.pivot import router as pivot_router
 from api.intelligence import router as intel_router
 from api.persistence import router as persistence_router
+from api.extc2 import router as extc2_router
 from models.event import OperationEvent  # ensure table is created
 from models.persistence import PersistenceEntry  # ensure table is created
 from core.crypto import init_crypto
@@ -42,7 +43,8 @@ app.include_router(profiles_router)
 app.include_router(pivot_router)
 app.include_router(intel_router)
 app.include_router(persistence_router)
+app.include_router(extc2_router)
 
 @app.get("/")
 def root():
-    return {"name": "Nyx C2 Server", "version": "1.2.0", "status": "online"}
+    return {"name": "Nyx C2 Server", "version": "1.3.0", "status": "online"}
