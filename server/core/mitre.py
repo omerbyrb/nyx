@@ -67,6 +67,16 @@ TECHNIQUES: dict[str, dict] = {
     "T1102":     {"name": "Web Service",                       "tactic": "Command and Control",  "url": "https://attack.mitre.org/techniques/T1102/"},
     "T1102.002": {"name": "Bidirectional Communication",       "tactic": "Command and Control",  "url": "https://attack.mitre.org/techniques/T1102/002/"},
     "T1102.001": {"name": "Dead Drop Resolver (Gist/Pastebin)","tactic": "Command and Control",  "url": "https://attack.mitre.org/techniques/T1102/001/"},
+    # ── Phase 9: Multi-platform Native ────────────────────────────────────────
+    "T1055.009": {"name": "Proc Memory",                       "tactic": "Defense Evasion",      "url": "https://attack.mitre.org/techniques/T1055/009/"},
+    "T1574.006": {"name": "Dynamic Linker Hijacking (LD_PRELOAD)","tactic": "Defense Evasion",   "url": "https://attack.mitre.org/techniques/T1574/006/"},
+    "T1574.004": {"name": "Dylib Hijacking",                   "tactic": "Defense Evasion",      "url": "https://attack.mitre.org/techniques/T1574/004/"},
+    "T1543.001": {"name": "Launch Agent",                      "tactic": "Persistence",          "url": "https://attack.mitre.org/techniques/T1543/001/"},
+    "T1543.002": {"name": "Systemd Service",                   "tactic": "Persistence",          "url": "https://attack.mitre.org/techniques/T1543/002/"},
+    "T1546.004": {"name": "Unix Shell Config Modification",    "tactic": "Persistence",          "url": "https://attack.mitre.org/techniques/T1546/004/"},
+    "T1555.001": {"name": "Keychain",                          "tactic": "Credential Access",    "url": "https://attack.mitre.org/techniques/T1555/001/"},
+    "T1087.001": {"name": "Local Account Discovery",           "tactic": "Discovery",            "url": "https://attack.mitre.org/techniques/T1087/001/"},
+    "T1518.001": {"name": "Security Software Discovery",       "tactic": "Discovery",            "url": "https://attack.mitre.org/techniques/T1518/001/"},
 }
 
 # ── Command → Technique mapping ───────────────────────────────────────────────
@@ -132,6 +142,24 @@ COMMAND_MAP: dict[str, str] = {
     "extc2-slack":     "T1102",
     "extc2-stop":      "T1102",
     "extc2-status":    "T1102",
+    # Phase 9 — Linux
+    "linux-privesc":          "T1068",
+    "linux-persist-ld":       "T1574.006",
+    "linux-persist-bashrc":   "T1546.004",
+    "linux-persist-systemd":  "T1543.002",
+    "linux-persist-crond":    "T1053.003",
+    "linux-persist-profiled": "T1546.004",
+    "linux-persist-list":     "T1547",
+    "linux-persist-remove":   "T1547",
+    # Phase 9 — macOS
+    "darwin-keychain":        "T1555.001",
+    "darwin-launchd":         "T1543.001",
+    "darwin-launchd-remove":  "T1543.001",
+    "darwin-dylib-hijack":    "T1574.004",
+    "darwin-enum-users":      "T1087.001",
+    "darwin-osascript":       "T1059.002",
+    "darwin-privesc":         "T1068",
+    "darwin-sip":             "T1518.001",
 }
 
 # ── Tactic ordering (kill chain order) ───────────────────────────────────────

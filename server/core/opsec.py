@@ -99,6 +99,26 @@ OPSEC_BASE_SCORES: dict[str, int] = {
     "dns-beacon-start":5,
     "dns-beacon-stop": 2,
 
+    # Phase 9 — Linux native
+    "linux-privesc":          4,   # read-only audit — low noise
+    "linux-persist-ld":       8,   # /etc/ld.so.preload is a classic forensic indicator
+    "linux-persist-bashrc":   5,   # .bashrc modified — user-level, low noise
+    "linux-persist-systemd":  6,   # systemd user service — persists across reboots
+    "linux-persist-crond":    7,   # /etc/cron.d needs root; monitored by auditd
+    "linux-persist-profiled": 8,   # /etc/profile.d needs root; all login shells affected
+    "linux-persist-list":     1,   # read-only
+    "linux-persist-remove":   3,   # cleanup
+
+    # Phase 9 — macOS native
+    "darwin-keychain":        7,   # security CLI triggers TCC prompt on modern macOS
+    "darwin-launchd":         6,   # LaunchAgents logged by Endpoint Security framework
+    "darwin-launchd-remove":  2,
+    "darwin-dylib-hijack":    7,   # writing a dylib is disk artifact; very effective post-SIP-bypass
+    "darwin-enum-users":      2,   # read-only dscl query
+    "darwin-osascript":       6,   # AppleScript may require Accessibility permission
+    "darwin-privesc":         3,   # read-only audit
+    "darwin-sip":             2,   # read-only csrutil status
+
     # External C2 — low OPSEC risk (uses legitimate cloud platforms)
     "extc2-github":    4,   # private gist; github.com TLS — hard to detect
     "extc2-telegram":  3,   # telegram API; fully encrypted, very common traffic
