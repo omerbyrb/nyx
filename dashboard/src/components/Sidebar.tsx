@@ -1,5 +1,9 @@
-import { motion } from "framer-motion";
-import { Terminal, Cpu, LayoutDashboard, Activity, LogOut, Package, FileText, Users, Archive, Globe, Brain, ShieldAlert, Wifi } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Terminal, Cpu, LayoutDashboard, Activity,
+  Package, FileText, Users, Archive, Globe, Brain,
+  ShieldAlert, Wifi, Power
+} from "lucide-react";
 
 interface SidebarProps {
   activePage: string;
@@ -8,13 +12,13 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "agents",    label: "Agents",    icon: Cpu },
-  { id: "tasks",     label: "Tasks",     icon: Activity },
-  { id: "console",   label: "Console",   icon: Terminal },
-  { id: "builder",   label: "Builder",   icon: Package },
-  { id: "reports",   label: "Reports",   icon: FileText },
-  { id: "loot",      label: "Loot",      icon: Archive },
+  { id: "dashboard",    label: "Dashboard",    icon: LayoutDashboard },
+  { id: "agents",       label: "Agents",       icon: Cpu },
+  { id: "tasks",        label: "Tasks",        icon: Activity },
+  { id: "console",      label: "Console",      icon: Terminal },
+  { id: "builder",      label: "Builder",      icon: Package },
+  { id: "reports",      label: "Reports",      icon: FileText },
+  { id: "loot",         label: "Loot",         icon: Archive },
   { id: "network",      label: "Network",      icon: Globe },
   { id: "intelligence", label: "Intelligence", icon: Brain },
   { id: "persistence",  label: "Persistence",  icon: ShieldAlert },
@@ -26,64 +30,130 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
   return (
     <motion.aside
       initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0,   opacity: 1 }}
-      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="w-56 flex flex-col bg-white border-r border-nyx-border"
-      style={{ boxShadow: "1px 0 0 #E5DDD0" }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="w-52 flex flex-col scanlines"
+      style={{
+        background: "#000",
+        borderRight: "1px solid #1F1F1F",
+        boxShadow: "1px 0 0 #00FF4108",
+        minHeight: "100vh",
+      }}
     >
-      {/* logo */}
-      <div className="px-5 py-5 border-b border-nyx-border">
-        <div className="flex items-center gap-3">
-          <motion.img
-            src="/logo.png"
-            alt="Nyx"
-            whileHover={{ scale: 1.08, rotate: -3 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            className="w-9 h-9 rounded-xl cursor-default object-cover"
-            style={{ boxShadow: "0 2px 8px rgba(30,60,184,0.25)" }}
-          />
+      {/* Logo */}
+      <div
+        className="px-4 py-4"
+        style={{ borderBottom: "1px solid #1F1F1F" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 flex items-center justify-center"
+            style={{
+              border: "1px solid #00FF41",
+              boxShadow: "0 0 10px rgba(0,255,65,0.4), inset 0 0 8px rgba(0,255,65,0.06)",
+            }}
+          >
+            <Terminal size={14} color="#00FF41" />
+          </div>
           <div>
-            <div className="text-nyx-text font-semibold text-sm" style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.01em" }}>Nyx C2</div>
-            <div className="text-nyx-muted text-xs mono">v1.4.0</div>
+            <div
+              className="text-sm font-bold tracking-widest glitch"
+              style={{
+                fontFamily: "'Fira Code', monospace",
+                color: "#00FF41",
+                textShadow: "0 0 8px rgba(0,255,65,0.6)",
+                letterSpacing: "0.12em",
+              }}
+            >
+              NYX C2
+            </div>
+            <div
+              className="text-xs"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
+            >
+              v1.4.0
+            </div>
           </div>
         </div>
       </div>
 
-      {/* nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        <p className="text-nyx-muted px-3 mb-3 font-semibold" style={{ fontSize: "10px", letterSpacing: "0.1em", textTransform: "uppercase" }}>Menu</p>
+      {/* Nav */}
+      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+        <div
+          className="px-2 mb-3 text-xs tracking-widest"
+          style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}
+        >
+          // NAVIGATION
+        </div>
         {navItems.map(({ id, label, icon: Icon }) => {
           const active = activePage === id;
           return (
             <motion.button
               key={id}
               onClick={() => onNavigate(id)}
-              whileHover={{ x: active ? 0 : 3 }}
               whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.15 }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium relative"
+              className="relative w-full flex items-center gap-2.5 px-3 py-2 text-xs"
               style={{
-                color: active ? "#1E3CB8" : "#8C95A8",
-                border: "1px solid transparent",
                 background: "transparent",
+                border: "1px solid transparent",
+                cursor: "pointer",
+                fontFamily: "'Fira Code', monospace",
+                transition: "all 0.12s ease",
               }}
             >
+              <AnimatePresence>
+                {active && (
+                  <motion.div
+                    layoutId="sidebar-active"
+                    className="absolute inset-0"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                      background: "rgba(0,255,65,0.05)",
+                      border: "1px solid rgba(0,255,65,0.25)",
+                      boxShadow: "inset 1px 0 0 #00FF41",
+                    }}
+                    transition={{ duration: 0.15 }}
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* active left-bar accent */}
               {active && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-xl"
-                  style={{ background: "#EEF1FB", border: "1px solid rgba(30,60,184,0.15)" }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                <div
+                  className="absolute left-0 top-0 bottom-0"
+                  style={{ width: "2px", background: "#00FF41", boxShadow: "0 0 6px #00FF41" }}
                 />
               )}
-              <span className="relative z-10 flex items-center gap-2.5 w-full">
-                <Icon size={15} />
+
+              <span
+                className="relative z-10 flex items-center gap-2.5 w-full"
+                style={{
+                  color: active ? "#00FF41" : "#4A4A4A",
+                  textShadow: active ? "0 0 4px rgba(0,255,65,0.5)" : "none",
+                  transition: "color 0.12s",
+                }}
+                onMouseEnter={e => {
+                  if (!active) (e.currentTarget as HTMLElement).style.color = "#9A9A9A";
+                }}
+                onMouseLeave={e => {
+                  if (!active) (e.currentTarget as HTMLElement).style.color = "#4A4A4A";
+                }}
+              >
+                <Icon size={13} />
                 {label}
                 {active && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="ml-auto w-1.5 h-1.5 rounded-full bg-nyx-accent"
+                    className="ml-auto"
+                    style={{
+                      width: 4, height: 4,
+                      background: "#00FF41",
+                      borderRadius: "50%",
+                      boxShadow: "0 0 4px #00FF41",
+                    }}
                   />
                 )}
               </span>
@@ -92,28 +162,72 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
         })}
       </nav>
 
-      {/* footer */}
-      <div className="px-3 pb-4 pt-3 border-t border-nyx-border space-y-1">
+      {/* Footer */}
+      <div
+        className="px-2 pb-3 pt-3 space-y-1"
+        style={{ borderTop: "1px solid #1F1F1F" }}
+      >
+        {/* Status */}
         <div className="flex items-center gap-2 px-3 py-2">
-          <div className="relative">
-            <div className="w-2 h-2 rounded-full bg-nyx-green" />
+          <div className="relative flex-shrink-0">
+            <div
+              style={{
+                width: 6, height: 6,
+                borderRadius: "50%",
+                background: "#00FF41",
+                boxShadow: "0 0 6px #00FF41",
+              }}
+            />
             <motion.div
-              animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
+              animate={{ scale: [1, 2, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 w-2 h-2 rounded-full bg-nyx-green"
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                background: "#00FF41",
+              }}
             />
           </div>
-          <span className="text-nyx-muted text-xs font-medium">Server Online</span>
+          <span
+            style={{
+              fontFamily: "'Fira Code', monospace",
+              fontSize: "10px",
+              color: "#4A4A4A",
+            }}
+          >
+            SERVER_ONLINE
+          </span>
         </div>
+
+        {/* Logout */}
         <motion.button
           onClick={onLogout}
-          whileHover={{ x: 3 }}
           whileTap={{ scale: 0.97 }}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-nyx-muted transition-colors duration-150 hover:text-nyx-red hover:bg-red-50"
-          style={{ border: "1px solid transparent" }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs"
+          style={{
+            background: "transparent",
+            border: "1px solid transparent",
+            color: "#4A4A4A",
+            fontFamily: "'Fira Code', monospace",
+            cursor: "pointer",
+            transition: "all 0.12s",
+          }}
+          onMouseEnter={e => {
+            const el = e.currentTarget as HTMLElement;
+            el.style.color = "#FF3333";
+            el.style.border = "1px solid rgba(255,51,51,0.2)";
+            el.style.background = "rgba(255,51,51,0.05)";
+          }}
+          onMouseLeave={e => {
+            const el = e.currentTarget as HTMLElement;
+            el.style.color = "#4A4A4A";
+            el.style.border = "1px solid transparent";
+            el.style.background = "transparent";
+          }}
         >
-          <LogOut size={15} />
-          Disconnect
+          <Power size={13} />
+          DISCONNECT
         </motion.button>
       </div>
     </motion.aside>
