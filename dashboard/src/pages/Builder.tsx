@@ -19,8 +19,40 @@ const JITTER_MODES = [
 ];
 
 type BuildState = "idle" | "building" | "done" | "error";
-
 interface Profile { name: string; description: string; }
+
+function Toggle({ value, onChange, label, desc }: { value: boolean; onChange: () => void; label: string; desc: string }) {
+  return (
+    <div className="flex items-center gap-3 p-3"
+      style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+      <motion.button onClick={onChange} whileTap={{ scale: 0.95 }}
+        className="relative flex-shrink-0"
+        style={{ width: 34, height: 18, border: `1px solid ${value ? "#00FF41" : "#2A2A2A"}`,
+          background: value ? "rgba(0,255,65,0.08)" : "transparent", borderRadius: 1 }}>
+        <motion.div animate={{ x: value ? 16 : 2 }} transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          style={{ position: "absolute", top: 2, width: 12, height: 12,
+            background: value ? "#00FF41" : "#2A2A2A",
+            boxShadow: value ? "0 0 4px #00FF41" : "none" }} />
+      </motion.button>
+      <div>
+        <p className="text-xs font-semibold" style={{ fontFamily: "'Fira Code', monospace", color: value ? "#E0E0E0" : "#4A4A4A" }}>
+          {label}
+        </p>
+        <p className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{desc}</p>
+      </div>
+    </div>
+  );
+}
+
+const Divider = ({ label }: { label: string }) => (
+  <div className="flex items-center gap-3 py-1">
+    <div style={{ flex: 1, height: 1, background: "#1F1F1F" }} />
+    <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+      // {label}
+    </span>
+    <div style={{ flex: 1, height: 1, background: "#1F1F1F" }} />
+  </div>
+);
 
 export default function Builder() {
   const [c2url, setC2url]         = useState("http://127.0.0.1:8000");
@@ -63,143 +95,166 @@ export default function Builder() {
           enable_sleep_mask: enableSleepMask, enable_syscalls: enableSyscalls,
         }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail ?? "Build failed");
-      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail ?? "Build failed"); }
       const blob = await res.blob();
       const ext  = platform.startsWith("windows") ? ".exe" : "";
       const name = buildStager ? `nyx-stager-${platform}${ext}` : `nyx-agent-${platform}${ext}`;
       setFilename(name);
       const url = URL.createObjectURL(blob);
-      const a   = document.createElement("a");
+      const a = document.createElement("a");
       a.href = url; a.download = name; a.click();
       URL.revokeObjectURL(url);
       setState("done");
       setTimeout(() => setState("idle"), 4000);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError((e as Error).message);
       setState("error");
     }
   };
 
-  const Toggle = ({ value, onChange, label, desc }: { value: boolean; onChange: () => void; label: string; desc: string }) => (
-    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#F8F6F1", border: "1px solid #E5DDD0" }}>
-      <motion.button onClick={onChange}
-        className="relative w-9 h-5 rounded-full flex-shrink-0 transition-colors"
-        style={{ background: value ? "#1E3CB8" : "#C5C9D4" }}
-        whileTap={{ scale: 0.95 }}>
-        <motion.div animate={{ x: value ? 16 : 2 }} transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          className="absolute top-0.5 w-4 h-4 rounded-full bg-white" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
-      </motion.button>
-      <div>
-        <p className="text-nyx-text text-xs font-semibold">{label}</p>
-        <p className="text-nyx-muted text-xs mt-0.5">{desc}</p>
-      </div>
-    </div>
-  );
+  const inputStyle = {
+    background: "#000", border: "1px solid #1F1F1F",
+    color: "#E0E0E0", fontFamily: "'Fira Code', monospace",
+    fontSize: "12px", padding: "8px 12px", outline: "none",
+  };
 
   return (
-    <div className="p-7 space-y-6 bg-nyx-bg min-h-full">
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-nyx-text text-2xl font-bold tracking-tight" style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.02em" }}>Payload Builder</h1>
-        <p className="text-nyx-muted text-sm mt-1">Compile a custom agent with your C2 URL embedded</p>
+    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+        <h1 className="text-lg font-bold tracking-widest uppercase"
+          style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+          // PAYLOAD_BUILDER
+        </h1>
+        <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+          compile a custom agent with embedded C2 URL
+        </p>
       </motion.div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-5">
+        {/* Left: config */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="col-span-2 bg-white rounded-2xl p-6 space-y-5" style={{ border: "1px solid #E5DDD0", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+          className="col-span-2 hud-panel p-5 space-y-5">
 
           {/* C2 URL */}
           <div>
-            <label className="block text-nyx-dim text-xs font-semibold mb-2 uppercase" style={{ letterSpacing: "0.08em" }}>C2 Server URL</label>
+            <label className="block text-xs mb-2 tracking-widest uppercase"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              C2_SERVER_URL
+            </label>
             <input value={c2url} onChange={e => setC2url(e.target.value)}
-              className="input-base w-full rounded-xl px-4 py-3 text-sm mono"
-              placeholder="https://your-server.com" />
-            <p className="text-nyx-muted text-xs mt-1.5">The agent beacons back to this URL</p>
+              style={{ ...inputStyle, width: "100%" }} placeholder="https://your-server.com" />
+            <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+              Agent beacons back to this URL
+            </p>
           </div>
 
           {/* Platform */}
           <div>
-            <label className="block text-nyx-dim text-xs font-semibold mb-3 uppercase" style={{ letterSpacing: "0.08em" }}>Target Platform</label>
+            <label className="block text-xs mb-3 tracking-widest uppercase"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              TARGET_PLATFORM
+            </label>
             <div className="grid grid-cols-5 gap-2">
-              {PLATFORMS.map(p => (
-                <motion.button key={p.id} onClick={() => setPlatform(p.id)}
-                  whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}
-                  className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl text-xs font-medium transition-all"
-                  style={platform === p.id
-                    ? { background: "#EEF1FB", border: "1px solid rgba(30,60,184,0.25)", color: "#1E3CB8" }
-                    : { background: "#F8F6F1", border: "1px solid #E5DDD0", color: "#8C95A8" }
-                  }>
-                  <span className="text-lg">{p.icon}</span>
-                  <span>{p.label}</span>
-                  <span style={{ fontSize: "10px", color: "#8C95A8" }}>{p.sub}</span>
-                </motion.button>
-              ))}
+              {PLATFORMS.map(p => {
+                const active = platform === p.id;
+                return (
+                  <motion.button key={p.id} onClick={() => setPlatform(p.id)}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex flex-col items-center gap-1 py-3 px-1"
+                    style={{
+                      background: active ? "rgba(0,255,65,0.05)" : "transparent",
+                      border: `1px solid ${active ? "rgba(0,255,65,0.3)" : "#1F1F1F"}`,
+                      borderLeft: active ? "2px solid #00FF41" : "1px solid #1F1F1F",
+                      cursor: "pointer",
+                    }}>
+                    <span className="text-base">{p.icon}</span>
+                    <span className="text-xs font-semibold"
+                      style={{ fontFamily: "'Fira Code', monospace", color: active ? "#00FF41" : "#4A4A4A" }}>
+                      {p.label}
+                    </span>
+                    <span style={{ fontSize: "9px", fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{p.sub}</span>
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
 
           {/* Sleep / Jitter */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-nyx-dim text-xs font-semibold mb-2 uppercase" style={{ letterSpacing: "0.08em" }}>Sleep (seconds)</label>
-              <input type="number" value={sleep} onChange={e => setSleep(+e.target.value)}
-                className="input-base w-full rounded-xl px-4 py-3 text-sm mono" min={1} max={3600} />
-            </div>
-            <div>
-              <label className="block text-nyx-dim text-xs font-semibold mb-2 uppercase" style={{ letterSpacing: "0.08em" }}>Jitter (seconds)</label>
-              <input type="number" value={jitter} onChange={e => setJitter(+e.target.value)}
-                className="input-base w-full rounded-xl px-4 py-3 text-sm mono" min={0} max={60} />
-            </div>
+            {[
+              { label: "SLEEP_SECS", val: sleep, setter: setSleep, min: 1, max: 3600 },
+              { label: "JITTER_SECS", val: jitter, setter: setJitter, min: 0, max: 60 },
+            ].map(({ label, val, setter, min, max }) => (
+              <div key={label}>
+                <label className="block text-xs mb-2 tracking-widest"
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  {label}
+                </label>
+                <input type="number" value={val} onChange={e => setter(+e.target.value)}
+                  min={min} max={max} style={{ ...inputStyle, width: "100%" }} />
+              </div>
+            ))}
           </div>
 
           {/* Jitter Mode */}
           <div>
-            <label className="block text-nyx-dim text-xs font-semibold mb-2 uppercase" style={{ letterSpacing: "0.08em" }}>
-              Jitter Mode
+            <label className="block text-xs mb-2 tracking-widest uppercase"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              JITTER_MODE
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {JITTER_MODES.map(m => (
-                <motion.button key={m.id} onClick={() => setJitterMode(m.id)}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex flex-col gap-1 p-2.5 rounded-xl text-left"
-                  style={jitterMode === m.id
-                    ? { background: "#EEF1FB", border: "1px solid rgba(30,60,184,0.25)" }
-                    : { background: "#F8F6F1", border: "1px solid #E5DDD0" }
-                  }>
-                  <span className="text-xs font-semibold" style={{ color: jitterMode === m.id ? "#1E3CB8" : "#0C0F1A" }}>{m.label}</span>
-                  <span className="text-nyx-muted" style={{ fontSize: "10px", lineHeight: "1.3" }}>{m.desc}</span>
-                </motion.button>
-              ))}
+              {JITTER_MODES.map(m => {
+                const active = jitterMode === m.id;
+                return (
+                  <motion.button key={m.id} onClick={() => setJitterMode(m.id)} whileTap={{ scale: 0.97 }}
+                    className="flex flex-col gap-1 p-2.5 text-left"
+                    style={{
+                      background: active ? "rgba(0,255,65,0.04)" : "transparent",
+                      border: `1px solid ${active ? "rgba(0,255,65,0.25)" : "#1F1F1F"}`,
+                      cursor: "pointer",
+                    }}>
+                    <span className="text-xs font-semibold"
+                      style={{ fontFamily: "'Fira Code', monospace", color: active ? "#00FF41" : "#4A4A4A" }}>
+                      {m.label}
+                    </span>
+                    <span style={{ fontSize: "9px", fontFamily: "'Fira Code', monospace", color: "#2A2A2A", lineHeight: "1.3" }}>
+                      {m.desc}
+                    </span>
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
 
           {/* C2 Profile */}
           <div>
-            <label className="block text-nyx-dim text-xs font-semibold mb-2 uppercase" style={{ letterSpacing: "0.08em" }}>
-              <span className="flex items-center gap-1.5"><Layers size={11} /> C2 Traffic Profile</span>
+            <label className="block text-xs mb-2 tracking-widest uppercase"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              <span className="flex items-center gap-1.5"><Layers size={11} /> C2_TRAFFIC_PROFILE</span>
             </label>
             <select value={profile} onChange={e => setProfile(e.target.value)}
-              className="input-base w-full rounded-xl px-4 py-3 text-sm"
-              style={{ appearance: "none" }}>
-              {profiles.map(p => (
-                <option key={p.name} value={p.name}>{p.name} — {p.description}</option>
-              ))}
+              style={{ ...inputStyle, width: "100%", cursor: "pointer" }}>
+              {profiles.map(p => <option key={p.name} value={p.name}>{p.name} — {p.description}</option>)}
             </select>
-            <p className="text-nyx-muted text-xs mt-1.5">Shapes HTTP traffic to mimic a legitimate service</p>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+              Shapes HTTP traffic to mimic a legitimate service
+            </p>
           </div>
 
           {/* Kill Date */}
           <div>
-            <label className="block text-nyx-dim text-xs font-semibold mb-2 uppercase" style={{ letterSpacing: "0.08em" }}>
-              <span className="flex items-center gap-1.5"><Calendar size={11} /> Kill Date (optional)</span>
+            <label className="block text-xs mb-2 tracking-widest uppercase"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              <span className="flex items-center gap-1.5"><Calendar size={11} /> KILL_DATE (optional)</span>
             </label>
             <input type="date" value={killDate} onChange={e => setKillDate(e.target.value)}
-              className="input-base w-full rounded-xl px-4 py-3 text-sm mono" />
-            <p className="text-nyx-muted text-xs mt-1.5">Agent self-terminates after this date</p>
+              style={{ ...inputStyle, width: "100%", colorScheme: "dark" }} />
+            <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+              Agent self-terminates after this date
+            </p>
           </div>
 
-          {/* Payload Options */}
+          {/* Payload options */}
           <div className="space-y-2">
             <Toggle value={obfuscate} onChange={() => setObfuscate(v => !v)}
               label="XOR String Obfuscation"
@@ -209,53 +264,43 @@ export default function Builder() {
               desc="Minimal first-stage loader — downloads full agent from C2 on execution" />
           </div>
 
-          {/* EDR Evasion — Windows only */}
+          {/* EDR Evasion */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
-              <span className="text-nyx-muted text-xs font-semibold uppercase" style={{ letterSpacing: "0.08em" }}>
-                EDR Evasion · Windows
-              </span>
-              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
-            </div>
-            <div className="space-y-2">
+            <Divider label="EDR EVASION · WINDOWS" />
+            <div className="space-y-2 mt-3">
               <Toggle value={enableAmsi} onChange={() => setEnableAmsi(v => !v)}
-                label="AMSI Bypass"
-                desc="Patches AmsiScanBuffer on startup — PowerShell/script scanning disabled" />
+                label="AMSI Bypass" desc="Patches AmsiScanBuffer on startup — PowerShell/script scanning disabled" />
               <Toggle value={enableEtw} onChange={() => setEnableEtw(v => !v)}
-                label="ETW Patching"
-                desc="Patches EtwEventWrite — blinds EDR telemetry channel" />
+                label="ETW Patching" desc="Patches EtwEventWrite — blinds EDR telemetry channel" />
               <Toggle value={enableSleepMask} onChange={() => setEnableSleepMask(v => !v)}
-                label="Sleep Masking"
-                desc="XOR-encrypts sensitive strings in memory while agent sleeps" />
+                label="Sleep Masking" desc="XOR-encrypts sensitive strings in memory while agent sleeps" />
               <Toggle value={enableSyscalls} onChange={() => setEnableSyscalls(v => !v)}
-                label="Hell's Gate (Direct Syscalls)"
-                desc="Resolves NT syscall numbers from ntdll — bypasses EDR API hooks" />
+                label="Hell's Gate (Direct Syscalls)" desc="Resolves NT syscall numbers from ntdll — bypasses EDR API hooks" />
               <Toggle value={enablePpid} onChange={() => setEnablePpid(v => !v)}
-                label="PPID Spoofing"
-                desc="Spawned processes appear as children of a trusted parent process" />
-              {enablePpid && (
-                <div className="pl-12">
-                  <label className="block text-nyx-muted text-xs mb-1.5">Parent process name</label>
-                  <input value={ppidTarget} onChange={e => setPpidTarget(e.target.value)}
-                    className="input-base w-full rounded-xl px-3 py-2 text-xs mono"
-                    placeholder="explorer.exe" />
-                </div>
-              )}
+                label="PPID Spoofing" desc="Spawned processes appear as children of a trusted parent process" />
+              <AnimatePresence>
+                {enablePpid && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }} className="pl-11 overflow-hidden">
+                    <label className="block text-xs mb-1.5"
+                      style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                      Parent process name
+                    </label>
+                    <input value={ppidTarget} onChange={e => setPpidTarget(e.target.value)}
+                      style={{ ...inputStyle, width: "100%" }} placeholder="explorer.exe" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          {/* Phase 3: Advanced Post-Exploitation */}
+          {/* Post-Exploitation capabilities */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
-              <span className="text-nyx-muted text-xs font-semibold uppercase" style={{ letterSpacing: "0.08em" }}>
-                Post-Exploitation · v0.8.0
-              </span>
-              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
-            </div>
-            <div className="rounded-xl p-3 space-y-2" style={{ background: "#F8F6F1", border: "1px solid #E5DDD0" }}>
-              <p className="text-nyx-muted text-xs font-medium mb-2">Capabilities compiled into this agent:</p>
+            <Divider label="POST-EXPLOITATION · v0.8.0" />
+            <div className="mt-3 p-3 space-y-2" style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                Capabilities compiled into this agent:
+              </p>
               {[
                 ["Process Hollowing",   "hollow / hollow-pe — inject shellcode or PE into a suspended process"],
                 ["Token Impersonation", "token-steal/make/revert/spawn — steal or forge Windows access tokens"],
@@ -265,27 +310,27 @@ export default function Builder() {
                 ["AS-REP Roasting",     "asrep-roast <user> <domain> <dc> — extract AS-REP hash"],
               ].map(([name, desc]) => (
                 <div key={name} className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#1E3CB8" }} />
+                  <span style={{ color: "#00FF41", fontSize: "10px", marginTop: 3 }}>▸</span>
                   <div>
-                    <span className="text-nyx-text text-xs font-semibold">{name}</span>
-                    <span className="text-nyx-muted text-xs"> — {desc}</span>
+                    <span className="text-xs font-semibold" style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                      {name}
+                    </span>
+                    <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                      {" "}— {desc}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Phase 4: P2P & Pivot */}
+          {/* P2P & Pivot */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
-              <span className="text-nyx-muted text-xs font-semibold uppercase" style={{ letterSpacing: "0.08em" }}>
-                P2P &amp; Pivot · v0.9.0
-              </span>
-              <div className="w-5 h-px flex-1" style={{ background: "#E5DDD0" }} />
-            </div>
-            <div className="rounded-xl p-3 space-y-2" style={{ background: "#F8F6F1", border: "1px solid #E5DDD0" }}>
-              <p className="text-nyx-muted text-xs font-medium mb-2">Pivot infrastructure — all platforms unless noted:</p>
+            <Divider label="P2P & PIVOT · v0.9.0" />
+            <div className="mt-3 p-3 space-y-2" style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                Pivot infrastructure — all platforms unless noted:
+              </p>
               {[
                 ["SOCKS5 Proxy",       "socks5-start <port> [user pass] — in-agent proxy, route tools via proxychains"],
                 ["Port Forward",       "pfwd-start <local> <remote:port> — tunnel internal services to operator"],
@@ -294,23 +339,29 @@ export default function Builder() {
                 ["DNS Data Exfil",     "results chunked into DNS label queries → server reassembles"],
               ].map(([name, desc]) => (
                 <div key={name} className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#0A6B4A" }} />
+                  <span style={{ color: "#00CC33", fontSize: "10px", marginTop: 3 }}>▸</span>
                   <div>
-                    <span className="text-nyx-text text-xs font-semibold">{name}</span>
-                    <span className="text-nyx-muted text-xs"> — {desc}</span>
+                    <span className="text-xs font-semibold" style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                      {name}
+                    </span>
+                    <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                      {" "}— {desc}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Build button */}
           <motion.button onClick={build} disabled={state === "building"}
-            whileHover={{ scale: 1.01, boxShadow: "0 6px 24px rgba(30,60,184,0.28)" }}
             whileTap={{ scale: 0.98 }}
-            className="btn-primary w-full py-3.5 rounded-xl text-sm flex items-center justify-center gap-2">
+            className="btn-primary w-full py-3 flex items-center justify-center gap-2">
             {state === "building"
-              ? <><motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}><Loader size={15} /></motion.span> Building…</>
-              : <><Package size={15} /> {buildStager ? "Build Stager" : "Build Agent"}</>
+              ? <><motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                  <Loader size={14} /></motion.span> BUILDING…
+                </>
+              : <><Package size={14} /> {buildStager ? "BUILD_STAGER" : "BUILD_AGENT"}</>
             }
           </motion.button>
         </motion.div>
@@ -320,51 +371,68 @@ export default function Builder() {
           className="space-y-4">
           <AnimatePresence>
             {state === "done" && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-2xl p-4 flex items-start gap-3" style={{ border: "1px solid rgba(10,107,74,0.2)" }}>
-                <CheckCircle size={16} className="text-nyx-green mt-0.5 flex-shrink-0" />
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="p-4 flex items-start gap-3"
+                style={{ background: "rgba(0,255,65,0.05)", border: "1px solid rgba(0,255,65,0.25)" }}>
+                <CheckCircle size={14} style={{ color: "#00FF41", flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <div className="text-nyx-text text-sm font-semibold">Build successful</div>
-                  <div className="mono text-nyx-muted text-xs mt-0.5">{filename}</div>
+                  <div className="text-xs font-bold" style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+                    BUILD_SUCCESS
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                    {filename}
+                  </div>
                 </div>
               </motion.div>
             )}
             {state === "error" && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                className="bg-white rounded-2xl p-4 flex items-start gap-3" style={{ border: "1px solid rgba(184,40,40,0.2)" }}>
-                <AlertCircle size={16} className="text-nyx-red mt-0.5 flex-shrink-0" />
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="p-4 flex items-start gap-3"
+                style={{ background: "rgba(255,51,51,0.05)", border: "1px solid rgba(255,51,51,0.25)" }}>
+                <AlertCircle size={14} style={{ color: "#FF3333", flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <div className="text-nyx-red text-sm font-semibold">Build failed</div>
-                  <div className="text-nyx-muted text-xs mt-0.5">{error}</div>
+                  <div className="text-xs font-bold" style={{ fontFamily: "'Fira Code', monospace", color: "#FF3333" }}>
+                    BUILD_FAILED
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                    {error}
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Deploy guide */}
-          <div className="bg-white rounded-2xl p-5 space-y-3" style={{ border: "1px solid #E5DDD0" }}>
-            <div className="text-nyx-text text-sm font-semibold flex items-center gap-2">
-              <Download size={14} className="text-nyx-accent" /> Deploy
+          <div className="hud-panel p-4 space-y-3">
+            <div className="text-xs font-bold tracking-widest flex items-center gap-1.5"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+              <Download size={11} /> // DEPLOY
             </div>
             <div className="space-y-2">
               {[
-                ["1. Build",    "Configure and click Build"],
-                ["2. Transfer", "Copy binary to target machine"],
-                ["3. Execute",  "Run with appropriate permissions"],
-                ["4. Monitor",  "Agent appears in the Agents tab"],
+                ["01", "Configure and click Build"],
+                ["02", "Copy binary to target machine"],
+                ["03", "Run with appropriate permissions"],
+                ["04", "Agent appears in the Agents tab"],
               ].map(([step, desc]) => (
                 <div key={step} className="flex gap-3">
-                  <span className="text-xs font-semibold text-nyx-accent mono w-14 flex-shrink-0 pt-0.5">{step}</span>
-                  <span className="text-nyx-muted text-xs">{desc}</span>
+                  <span className="text-xs font-bold flex-shrink-0 pt-0.5 w-7"
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+                    {step}
+                  </span>
+                  <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                    {desc}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Build summary */}
-          <div className="bg-white rounded-2xl p-5 space-y-2" style={{ border: "1px solid #E5DDD0" }}>
-            <div className="text-nyx-text text-sm font-semibold mb-3 flex items-center gap-2">
-              <Shield size={13} className="text-nyx-accent" /> Build Summary
+          <div className="hud-panel p-4 space-y-0.5">
+            <div className="text-xs font-bold tracking-widest mb-3 flex items-center gap-1.5"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+              <Shield size={11} /> // BUILD_SUMMARY
             </div>
             {[
               ["Platform",    PLATFORMS.find(p => p.id === platform)?.label + " " + PLATFORMS.find(p => p.id === platform)?.sub],
@@ -380,9 +448,11 @@ export default function Builder() {
               ["Syscalls",    enableSyscalls ? "Hell's Gate" : "—"],
               ["PPID Spoof",  enablePpid ? ppidTarget : "—"],
             ].map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center py-1.5 border-b border-nyx-border last:border-0">
-                <span className="text-nyx-muted text-xs font-medium">{k}</span>
-                <span className="mono text-nyx-dim text-xs truncate max-w-32">{v}</span>
+              <div key={k} className="flex justify-between items-center py-1.5"
+                style={{ borderBottom: "1px solid #0A0A0A" }}>
+                <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{k}</span>
+                <span className="text-xs truncate max-w-32"
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>{v}</span>
               </div>
             ))}
           </div>

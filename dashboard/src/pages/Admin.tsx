@@ -1,26 +1,29 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Trash2, Shield, Eye, Edit3, Check, X } from "lucide-react";
+import { Plus, Trash2, Shield, Eye, Edit3, Check, X } from "lucide-react";
 import { api } from "../api/client";
 
 interface Operator {
-  id: string;
-  username: string;
+  id: string; username: string;
   role: "admin" | "operator" | "readonly";
-  is_active: boolean;
-  last_login: string | null;
-  created_at: string;
+  is_active: boolean; last_login: string | null; created_at: string;
 }
 
+const ROLE_COLORS: Record<string, { color: string; border: string }> = {
+  admin:    { color: "#FF3333", border: "rgba(255,51,51,0.3)" },
+  operator: { color: "#00FF41", border: "rgba(0,255,65,0.3)" },
+  readonly: { color: "#4A4A4A", border: "#1F1F1F" },
+};
+
 const rolePill = (role: string) => {
-  const cfg: Record<string, { bg: string; color: string; border: string }> = {
-    admin:    { bg: "#FEF2F2", color: "#B82828", border: "rgba(184,40,40,0.2)" },
-    operator: { bg: "#EEF2FF", color: "#1E3CB8", border: "rgba(30,60,184,0.2)" },
-    readonly: { bg: "#F4F2EE", color: "#8C95A8", border: "#E5DDD0" },
-  };
-  const s = cfg[role] ?? cfg.readonly;
+  const s = ROLE_COLORS[role] ?? ROLE_COLORS.readonly;
   return (
-    <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: 6, padding: "2px 8px", fontSize: "0.7rem", fontWeight: 700 }}>
+    <span style={{
+      background: `${s.color}0D`, color: s.color,
+      border: `1px solid ${s.border}`, borderRadius: 2,
+      padding: "2px 8px", fontSize: "0.7rem", fontWeight: 700,
+      fontFamily: "'Fira Code', monospace",
+    }}>
       {role}
     </span>
   );
@@ -42,11 +45,8 @@ export default function Admin() {
     try {
       const r = await api.get<Operator[]>("/api/admin/operators");
       setOperators(r.data);
-    } catch {
-      setError("Access denied — admin role required");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("ACCESS_DENIED: admin role required"); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { fetchOperators(); }, []);
@@ -81,39 +81,41 @@ export default function Admin() {
     fetchOperators();
   };
 
+  const inputStyle = {
+    background: "#000", border: "1px solid #1F1F1F",
+    color: "#E0E0E0", fontFamily: "'Fira Code', monospace",
+    fontSize: "12px", padding: "8px 12px", outline: "none",
+  };
+
   return (
-    <div className="flex flex-col bg-nyx-bg" style={{ minHeight: "100vh", padding: "28px", gap: "20px" }}>
+    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
         className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white"
-            style={{ border: "1px solid #E5DDD0", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-            <Users size={14} className="text-nyx-accent" />
-          </div>
-          <div>
-            <h1 className="text-nyx-text text-xl font-bold tracking-tight"
-              style={{ fontFamily: "Bricolage Grotesque, sans-serif", letterSpacing: "-0.02em" }}>
-              Operator Management
-            </h1>
-            <p className="text-nyx-muted text-xs mt-0.5">Multi-operator RBAC — admin, operator, readonly</p>
-          </div>
+        <div>
+          <h1 className="text-lg font-bold tracking-widest uppercase"
+            style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+            // OPERATORS
+          </h1>
+          <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+            multi-operator RBAC — admin · operator · readonly
+          </p>
         </div>
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+        <motion.button whileTap={{ scale: 0.95 }}
           onClick={() => setShowCreate(v => !v)}
-          className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold">
-          <Plus size={14} /> Add Operator
+          className="btn-primary flex items-center gap-2 px-3 py-1.5">
+          <Plus size={12} /> ADD_OPERATOR
         </motion.button>
       </motion.div>
 
       {/* Error */}
       <AnimatePresence>
         {error && (
-          <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
-            style={{ background: "#FEF2F2", border: "1px solid rgba(184,40,40,0.2)", color: "#B82828" }}>
-            <X size={14} /> {error}
-            <button onClick={() => setError("")} className="ml-auto"><X size={12} /></button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="flex items-center gap-2 px-3 py-2.5 text-xs"
+            style={{ fontFamily: "'Fira Code', monospace", color: "#FF3333", background: "rgba(255,51,51,0.05)", border: "1px solid rgba(255,51,51,0.2)" }}>
+            <X size={12} /> {error}
+            <button onClick={() => setError("")} className="ml-auto" style={{ color: "#4A4A4A" }}><X size={11} /></button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -123,139 +125,153 @@ export default function Admin() {
         {showCreate && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}
-            className="bg-white rounded-2xl p-5 overflow-hidden" style={{ border: "1px solid #E5DDD0" }}>
-            <h3 className="font-semibold text-nyx-text text-sm mb-4">New Operator</h3>
+            className="hud-panel p-4 overflow-hidden">
+            <div className="text-xs font-bold mb-4 tracking-widest"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+              // NEW_OPERATOR
+            </div>
             <div className="grid grid-cols-3 gap-3 mb-4">
               <input value={newUsername} onChange={e => setNewUsername(e.target.value)}
-                placeholder="Username" className="input-base rounded-xl px-3 py-2 text-sm" />
+                placeholder="username" style={inputStyle} className="w-full" />
               <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                placeholder="Password" className="input-base rounded-xl px-3 py-2 text-sm" />
+                placeholder="password" style={inputStyle} className="w-full" />
               <select value={newRole} onChange={e => setNewRole(e.target.value as "admin"|"operator"|"readonly")}
-                className="input-base rounded-xl px-3 py-2 text-sm">
+                style={{ ...inputStyle, cursor: "pointer" }} className="w-full">
                 <option value="operator">operator</option>
                 <option value="admin">admin</option>
                 <option value="readonly">readonly</option>
               </select>
             </div>
             <div className="flex gap-2">
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={createOperator} disabled={creating}
-                className="btn-primary px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
-                {creating ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-3 h-3 rounded-full border border-white border-t-transparent" /> : <Check size={13} />}
-                Create
+              <motion.button whileTap={{ scale: 0.96 }} onClick={createOperator} disabled={creating}
+                className="btn-primary px-4 py-1.5 flex items-center gap-2">
+                {creating
+                  ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      style={{ width: 10, height: 10, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
+                  : <Check size={11} />}
+                CREATE
               </motion.button>
-              <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-xl text-sm text-nyx-muted hover:text-nyx-text transition-colors">
-                Cancel
-              </button>
+              <button onClick={() => setShowCreate(false)} className="btn-ghost px-4 py-1.5">CANCEL</button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Operators table */}
+      {/* Table */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E5DDD0" }}>
-        <div className="grid text-xs font-semibold text-nyx-muted uppercase tracking-wide px-5 py-3"
-          style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto", borderBottom: "1px solid #F0EBE3", letterSpacing: "0.08em" }}>
+        className="hud-panel" style={{ overflow: "hidden" }}>
+        <div className="grid px-4 py-2.5 text-xs tracking-widest uppercase"
+          style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
+            borderBottom: "1px solid #1F1F1F",
+            fontFamily: "'Fira Code', monospace", color: "#2A2A2A", fontWeight: 400 }}>
           <span>Username</span><span>Role</span><span>Status</span><span>Last Login</span><span>Actions</span>
         </div>
         {loading && (
           <div className="flex items-center justify-center p-12">
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-5 h-5 rounded-full border-2 border-nyx-accent border-t-transparent" />
+              style={{ width: 18, height: 18, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
           </div>
         )}
         <AnimatePresence>
           {operators.map((op, i) => (
             <motion.div key={op.id}
-              initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 6 }}
+              initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="grid items-center px-5 py-3.5 hover:bg-nyx-bg transition-colors"
-              style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto", borderBottom: "1px solid #F8F6F1" }}>
-              {/* Username */}
+              className="grid items-center px-4 py-3"
+              style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto", borderBottom: "1px solid #1F1F1F" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,0.02)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+            >
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
-                  style={{ background: "#EEF2FF", color: "#1E3CB8" }}>
+                <div className="flex items-center justify-center text-xs font-bold"
+                  style={{ width: 26, height: 26, border: "1px solid rgba(0,255,65,0.2)", color: "#00FF41", fontFamily: "'Fira Code', monospace" }}>
                   {op.username[0].toUpperCase()}
                 </div>
-                <span className="font-semibold text-nyx-text text-sm mono">{op.username}</span>
+                <span className="font-bold text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                  {op.username}
+                </span>
               </div>
-              {/* Role */}
               <div>
                 {editId === op.id ? (
                   <div className="flex items-center gap-1.5">
                     <select value={editRole} onChange={e => setEditRole(e.target.value as "admin"|"operator"|"readonly")}
-                      className="input-base rounded-lg px-2 py-1 text-xs">
+                      style={{ ...inputStyle, padding: "4px 8px", fontSize: "11px" }}>
                       <option value="operator">operator</option>
                       <option value="admin">admin</option>
                       <option value="readonly">readonly</option>
                     </select>
-                    <button onClick={() => updateRole(op.id, editRole)}
-                      className="p-1 rounded text-nyx-green hover:bg-green-50"><Check size={12} /></button>
-                    <button onClick={() => setEditId(null)}
-                      className="p-1 rounded text-nyx-muted hover:bg-nyx-bg"><X size={12} /></button>
+                    <button onClick={() => updateRole(op.id, editRole)} style={{ color: "#00FF41" }}><Check size={12} /></button>
+                    <button onClick={() => setEditId(null)} style={{ color: "#4A4A4A" }}><X size={12} /></button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
                     {rolePill(op.role)}
-                    {op.role === "admin" && <Shield size={11} style={{ color: "#B82828" }} />}
+                    {op.role === "admin" && <Shield size={10} style={{ color: "#FF3333" }} />}
                   </div>
                 )}
               </div>
-              {/* Status */}
               <div>
-                <span className="flex items-center gap-1.5 text-xs font-semibold"
-                  style={{ color: op.is_active ? "#0A6B4A" : "#8C95A8" }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: op.is_active ? "#0A6B4A" : "#C5C9D4" }} />
-                  {op.is_active ? "Active" : "Disabled"}
+                <span className="flex items-center gap-1.5 text-xs"
+                  style={{ fontFamily: "'Fira Code', monospace", color: op.is_active ? "#00FF41" : "#4A4A4A" }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: op.is_active ? "#00FF41" : "#2A2A2A",
+                    boxShadow: op.is_active ? "0 0 4px #00FF41" : "none" }} />
+                  {op.is_active ? "ONLINE" : "DISABLED"}
                 </span>
               </div>
-              {/* Last Login */}
-              <span className="mono text-xs text-nyx-muted">
+              <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                 {op.last_login ? new Date(op.last_login).toLocaleString() : "never"}
               </span>
-              {/* Actions */}
               <div className="flex items-center gap-1">
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                  onClick={() => { setEditId(op.id); setEditRole(op.role); }}
-                  className="p-1.5 rounded-lg hover:bg-nyx-bg transition-colors" title="Edit role">
-                  <Edit3 size={13} className="text-nyx-muted" />
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => { setEditId(op.id); setEditRole(op.role); }}
+                  style={{ color: "#4A4A4A", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#00FF41"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                  <Edit3 size={12} />
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                  onClick={() => toggleActive(op)}
-                  className="p-1.5 rounded-lg hover:bg-nyx-bg transition-colors" title="Toggle active">
-                  <Eye size={13} className="text-nyx-muted" />
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => toggleActive(op)}
+                  style={{ color: "#4A4A4A", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#9A9A9A"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                  <Eye size={12} />
                 </motion.button>
-                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                  onClick={() => deleteOperator(op.id)}
-                  className="p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Delete">
-                  <Trash2 size={13} className="text-nyx-red" />
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => deleteOperator(op.id)}
+                  style={{ color: "#4A4A4A", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#FF3333"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                  <Trash2 size={12} />
                 </motion.button>
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
         {!loading && operators.length === 0 && (
-          <div className="text-center py-12 text-nyx-muted text-sm">No operators found</div>
+          <div className="text-center py-12 text-xs"
+            style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            {"[ NO OPERATORS FOUND ]"}
+          </div>
         )}
       </motion.div>
 
       {/* Role legend */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E5DDD0" }}>
-        <h3 className="font-semibold text-nyx-text text-sm mb-3">Role Permissions</h3>
+        className="hud-panel p-4">
+        <div className="text-xs tracking-widest mb-3"
+          style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+          // ROLE_PERMISSIONS
+        </div>
         <div className="grid grid-cols-3 gap-4 text-xs">
           {[
-            { role: "admin", perms: ["All operations", "Operator management", "Delete agents", "IOC export"] },
+            { role: "admin",    perms: ["All operations", "Operator management", "Delete agents", "IOC export"] },
             { role: "operator", perms: ["View agents", "Execute tasks", "Payload builder", "IOC export"] },
             { role: "readonly", perms: ["View agents", "View tasks", "View reports", "No execution"] },
           ].map(({ role, perms }) => (
-            <div key={role} className="flex flex-col gap-2 p-3 rounded-xl" style={{ background: "#F8F6F1", border: "1px solid #F0EBE3" }}>
+            <div key={role} className="flex flex-col gap-2 p-3"
+              style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
               <div className="mb-1">{rolePill(role)}</div>
               {perms.map(p => (
-                <span key={p} className="flex items-center gap-1.5 text-nyx-muted">
-                  <Check size={10} className="text-nyx-green flex-shrink-0" /> {p}
+                <span key={p} className="flex items-center gap-1.5"
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  <Check size={9} style={{ color: "#00FF41", flexShrink: 0 }} /> {p}
                 </span>
               ))}
             </div>

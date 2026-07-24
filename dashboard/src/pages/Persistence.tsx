@@ -4,45 +4,34 @@ import { Shield, Trash2, RefreshCw, Plus, AlertTriangle, CheckCircle } from "luc
 import { api } from "../api/client";
 
 interface PersistEntry {
-  id: string;
-  agent_id: string;
-  mech_type: string;
-  name: string;
-  payload: string;
-  trigger: string;
-  status: string;
-  created_at: string;
-  removed_at: string | null;
+  id: string; agent_id: string; mech_type: string; name: string;
+  payload: string; trigger: string; status: string; created_at: string; removed_at: string | null;
 }
 
-interface Summary {
-  total_active: number;
-  by_type: Record<string, number>;
-  by_agent: Record<string, number>;
-}
+interface Summary { total_active: number; by_type: Record<string, number>; by_agent: Record<string, number>; }
 
 const MECH_META: Record<string, { label: string; color: string; icon: string }> = {
-  reg:         { label: "Registry Run",    color: "#1E3CB8", icon: "🗝" },
-  svc:         { label: "Service",         color: "#B82828", icon: "⚙" },
-  task:        { label: "Sched. Task",     color: "#B86428", icon: "🕐" },
-  startup:     { label: "Startup Folder",  color: "#6B2FB8", icon: "📂" },
-  wmi:         { label: "WMI Event",       color: "#0A6B4A", icon: "🔌" },
-  launchagent: { label: "LaunchAgent",     color: "#888888", icon: "🍎" },
-  cron:        { label: "Cron",            color: "#888888", icon: "⏰" },
+  reg:         { label: "Registry Run",   color: "#00FF41", icon: "🗝" },
+  svc:         { label: "Service",        color: "#FF3333", icon: "⚙" },
+  task:        { label: "Sched. Task",    color: "#FFB800", icon: "🕐" },
+  startup:     { label: "Startup Folder", color: "#9A9A9A", icon: "📂" },
+  wmi:         { label: "WMI Event",      color: "#00FF41", icon: "🔌" },
+  launchagent: { label: "LaunchAgent",    color: "#9A9A9A", icon: "🍎" },
+  cron:        { label: "Cron",           color: "#9A9A9A", icon: "⏰" },
 };
 
 const MECH_TYPES = Object.keys(MECH_META);
 
 export default function Persistence() {
-  const [entries, setEntries]     = useState<PersistEntry[]>([]);
-  const [summary, setSummary]     = useState<Summary | null>(null);
-  const [loading, setLoading]     = useState(true);
+  const [entries, setEntries]   = useState<PersistEntry[]>([]);
+  const [summary, setSummary]   = useState<Summary | null>(null);
+  const [loading, setLoading]   = useState(true);
   const [filterAgent, setFilterAgent] = useState("");
   const [filterType, setFilterType]   = useState("");
   const [showActive, setShowActive]   = useState(true);
-  const [showAdd, setShowAdd]     = useState(false);
-  const [form, setForm]           = useState({ agent_id: "", mech_type: "reg", name: "", payload: "", trigger: "ONLOGON" });
-  const [toast, setToast]         = useState<{ msg: string; ok: boolean } | null>(null);
+  const [showAdd, setShowAdd]   = useState(false);
+  const [form, setForm]         = useState({ agent_id: "", mech_type: "reg", name: "", payload: "", trigger: "ONLOGON" });
+  const [toast, setToast]       = useState<{ msg: string; ok: boolean } | null>(null);
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok });
@@ -58,39 +47,26 @@ export default function Persistence() {
       ]);
       setEntries(entRes.data);
       setSummary(sumRes.data);
-    } catch {
-      showToast("Failed to load persistence data", false);
-    } finally {
-      setLoading(false);
-    }
+    } catch { showToast("Failed to load persistence data", false); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const handleRemove = async (id: string) => {
-    try {
-      await api.delete(`/api/persistence/${id}`);
-      showToast("Entry marked as removed");
-      load();
-    } catch {
-      showToast("Failed to remove entry", false);
-    }
+    try { await api.delete(`/api/persistence/${id}`); showToast("Entry removed"); load(); }
+    catch { showToast("Failed to remove entry", false); }
   };
 
   const handleAdd = async () => {
-    if (!form.agent_id || !form.name) {
-      showToast("Agent ID and Name are required", false);
-      return;
-    }
+    if (!form.agent_id || !form.name) { showToast("Agent ID and Name are required", false); return; }
     try {
       await api.post("/api/persistence/", form);
-      showToast("Persistence entry recorded");
+      showToast("Entry recorded");
       setShowAdd(false);
       setForm({ agent_id: "", mech_type: "reg", name: "", payload: "", trigger: "ONLOGON" });
       load();
-    } catch {
-      showToast("Failed to record entry", false);
-    }
+    } catch { showToast("Failed to record entry", false); }
   };
 
   const filtered = entries.filter(e => {
@@ -101,19 +77,26 @@ export default function Persistence() {
     return true;
   });
 
+  const inputStyle = {
+    background: "#000", border: "1px solid #1F1F1F",
+    color: "#E0E0E0", fontFamily: "'Fira Code', monospace",
+    fontSize: "12px", padding: "6px 10px", outline: "none", width: "100%",
+  };
+
   return (
-    <div className="p-6">
+    <div className="p-6" style={{ background: "#000", minHeight: "100%" }}>
       {/* Toast */}
       <AnimatePresence>
         {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium"
-            style={{ background: toast.ok ? "#0A6B4A" : "#B82828" }}
-          >
-            {toast.ok ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}
+            className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 text-xs font-medium"
+            style={{
+              fontFamily: "'Fira Code', monospace",
+              background: toast.ok ? "rgba(0,255,65,0.08)" : "rgba(255,51,51,0.08)",
+              border: `1px solid ${toast.ok ? "rgba(0,255,65,0.3)" : "rgba(255,51,51,0.3)"}`,
+              color: toast.ok ? "#00FF41" : "#FF3333",
+            }}>
+            {toast.ok ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
             {toast.msg}
           </motion.div>
         )}
@@ -122,46 +105,44 @@ export default function Persistence() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-nyx-text" style={{ letterSpacing: "-0.02em" }}>
-            Persistence
+          <h1 className="text-lg font-bold tracking-widest uppercase"
+            style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+            // PERSISTENCE
           </h1>
-          <p className="text-sm text-nyx-muted mt-0.5">
+          <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
             Registry · Service · Scheduled Task · WMI · Startup — per-agent tracker
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowAdd(!showAdd)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold"
-            style={{ background: "#1E3CB8" }}
-          >
-            <Plus size={13} /> Record
+          <button onClick={() => setShowAdd(!showAdd)} className="btn-primary flex items-center gap-1.5 px-3 py-1.5">
+            <Plus size={12} /> RECORD
           </button>
-          <button
-            onClick={load}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-nyx-bg border border-nyx-border text-nyx-muted text-xs font-semibold"
-          >
-            <RefreshCw size={13} /> Refresh
+          <button onClick={load} className="btn-ghost flex items-center gap-1.5 px-3 py-1.5">
+            <RefreshCw size={12} /> REFRESH
           </button>
         </div>
       </div>
 
       {/* Summary cards */}
       {summary && (
-        <div className="grid grid-cols-2 gap-3 mb-6" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))" }}>
-          <div className="bg-white rounded-2xl border border-nyx-border p-4">
-            <div className="text-3xl font-black" style={{ color: "#1E3CB8" }}>{summary.total_active}</div>
-            <div className="text-xs text-nyx-muted mt-1">Active Mechanisms</div>
+        <div className="grid grid-cols-2 gap-3 mb-6" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))" }}>
+          <div className="hud-panel p-4">
+            <div className="text-3xl font-black" style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.4)" }}>
+              {summary.total_active}
+            </div>
+            <div className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              Active Mechanisms
+            </div>
           </div>
           {Object.entries(summary.by_type).map(([type, count]) => {
-            const meta = MECH_META[type] ?? { label: type, color: "#888", icon: "❓" };
+            const meta = MECH_META[type] ?? { label: type, color: "#9A9A9A", icon: "?" };
             return (
-              <div key={type} className="bg-white rounded-2xl border border-nyx-border p-4">
+              <div key={type} className="hud-panel p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <span>{meta.icon}</span>
-                  <span className="text-xs font-bold" style={{ color: meta.color }}>{meta.label}</span>
+                  <span className="text-xs font-bold" style={{ fontFamily: "'Fira Code', monospace", color: meta.color }}>{meta.label}</span>
                 </div>
-                <div className="text-2xl font-black" style={{ color: meta.color }}>{count}</div>
+                <div className="text-2xl font-black" style={{ fontFamily: "'Fira Code', monospace", color: meta.color }}>{count}</div>
               </div>
             );
           })}
@@ -171,83 +152,55 @@ export default function Persistence() {
       {/* Add form */}
       <AnimatePresence>
         {showAdd && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden mb-5"
-          >
-            <div className="bg-white rounded-2xl border border-nyx-border p-5">
-              <div className="text-sm font-bold text-nyx-text mb-4 flex items-center gap-2">
-                <Shield size={14} /> Record Persistence Mechanism
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-5">
+            <div className="hud-panel p-5">
+              <div className="text-xs font-bold mb-4 tracking-widest flex items-center gap-2"
+                style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+                <Shield size={12} /> RECORD_PERSISTENCE
               </div>
               <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "AGENT_ID", key: "agent_id", placeholder: "e.g. a3f12b8e-..." },
+                  { label: "NAME", key: "name", placeholder: "WindowsUpdate" },
+                  { label: "PAYLOAD", key: "payload", placeholder: "C:\\Windows\\Temp\\agent.exe", span: true },
+                ].map(f => (
+                  <div key={f.key} className={f.span ? "col-span-2" : ""}>
+                    <label className="block text-xs mb-1 tracking-widest"
+                      style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                      {f.label}
+                    </label>
+                    <input style={inputStyle} placeholder={f.placeholder}
+                      value={(form as Record<string, string>)[f.key]}
+                      onChange={e => setForm(f2 => ({ ...f2, [f.key]: e.target.value }))} />
+                  </div>
+                ))}
                 <div>
-                  <label className="block text-xs font-semibold text-nyx-muted mb-1">Agent ID</label>
-                  <input
-                    className="w-full border border-nyx-border rounded-xl px-3 py-2 text-xs mono focus:outline-none focus:border-nyx-accent"
-                    placeholder="e.g. a3f12b8e-..."
-                    value={form.agent_id}
-                    onChange={e => setForm(f => ({ ...f, agent_id: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-nyx-muted mb-1">Mechanism Type</label>
-                  <select
-                    className="w-full border border-nyx-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-nyx-accent"
-                    value={form.mech_type}
-                    onChange={e => setForm(f => ({ ...f, mech_type: e.target.value }))}
-                  >
-                    {MECH_TYPES.map(t => (
-                      <option key={t} value={t}>{MECH_META[t].label}</option>
-                    ))}
+                  <label className="block text-xs mb-1 tracking-widest"
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                    MECH_TYPE
+                  </label>
+                  <select style={inputStyle} value={form.mech_type}
+                    onChange={e => setForm(f => ({ ...f, mech_type: e.target.value }))}>
+                    {MECH_TYPES.map(t => <option key={t} value={t}>{MECH_META[t].label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-nyx-muted mb-1">Name / Key</label>
-                  <input
-                    className="w-full border border-nyx-border rounded-xl px-3 py-2 text-xs mono focus:outline-none focus:border-nyx-accent"
-                    placeholder="WindowsUpdate"
-                    value={form.name}
-                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-nyx-muted mb-1">Trigger</label>
-                  <select
-                    className="w-full border border-nyx-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-nyx-accent"
-                    value={form.trigger}
-                    onChange={e => setForm(f => ({ ...f, trigger: e.target.value }))}
-                  >
+                  <label className="block text-xs mb-1 tracking-widest"
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                    TRIGGER
+                  </label>
+                  <select style={inputStyle} value={form.trigger}
+                    onChange={e => setForm(f => ({ ...f, trigger: e.target.value }))}>
                     {["ONLOGON", "ONSTART", "DAILY", "HOURLY", "ONIDLE", ""].map(t => (
                       <option key={t} value={t}>{t || "(none)"}</option>
                     ))}
                   </select>
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-nyx-muted mb-1">Payload / Path</label>
-                  <input
-                    className="w-full border border-nyx-border rounded-xl px-3 py-2 text-xs mono focus:outline-none focus:border-nyx-accent"
-                    placeholder="C:\Windows\Temp\agent.exe"
-                    value={form.payload}
-                    onChange={e => setForm(f => ({ ...f, payload: e.target.value }))}
-                  />
-                </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <button
-                  onClick={handleAdd}
-                  className="px-4 py-2 rounded-xl text-white text-xs font-semibold"
-                  style={{ background: "#1E3CB8" }}
-                >
-                  Save Entry
-                </button>
-                <button
-                  onClick={() => setShowAdd(false)}
-                  className="px-4 py-2 rounded-xl bg-nyx-bg border border-nyx-border text-nyx-muted text-xs font-semibold"
-                >
-                  Cancel
-                </button>
+                <button onClick={handleAdd} className="btn-primary px-4 py-1.5">SAVE</button>
+                <button onClick={() => setShowAdd(false)} className="btn-ghost px-4 py-1.5">CANCEL</button>
               </div>
             </div>
           </motion.div>
@@ -256,105 +209,101 @@ export default function Persistence() {
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="flex rounded-xl overflow-hidden border border-nyx-border text-xs font-semibold">
-          <button
-            onClick={() => setShowActive(true)}
-            className="px-3 py-2"
-            style={{ background: showActive ? "#1E3CB8" : "#fff", color: showActive ? "#fff" : "#8C95A8" }}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setShowActive(false)}
-            className="px-3 py-2"
-            style={{ background: !showActive ? "#888" : "#fff", color: !showActive ? "#fff" : "#8C95A8" }}
-          >
-            Removed
-          </button>
+        <div className="flex overflow-hidden text-xs" style={{ border: "1px solid #1F1F1F" }}>
+          {[["Active", true], ["Removed", false]].map(([label, val]) => (
+            <button key={String(label)} onClick={() => setShowActive(val as boolean)}
+              className="px-3 py-1.5"
+              style={{
+                fontFamily: "'Fira Code', monospace",
+                background: showActive === val ? "rgba(0,255,65,0.08)" : "transparent",
+                color: showActive === val ? "#00FF41" : "#4A4A4A",
+                border: "none", cursor: "pointer",
+              }}>
+              {label}
+            </button>
+          ))}
         </div>
-
-        <input
-          className="border border-nyx-border rounded-xl px-3 py-2 text-xs mono w-52 focus:outline-none"
+        <input style={{ ...inputStyle, width: "auto", flex: "0 0 200px" }}
           placeholder="Filter by agent ID..."
-          value={filterAgent}
-          onChange={e => setFilterAgent(e.target.value)}
-        />
-
-        <select
-          className="border border-nyx-border rounded-xl px-3 py-2 text-xs w-40 focus:outline-none"
-          value={filterType}
-          onChange={e => setFilterType(e.target.value)}
-        >
+          value={filterAgent} onChange={e => setFilterAgent(e.target.value)} />
+        <select style={{ ...inputStyle, width: "auto", flex: "0 0 150px" }}
+          value={filterType} onChange={e => setFilterType(e.target.value)}>
           <option value="">All types</option>
           {MECH_TYPES.map(t => <option key={t} value={t}>{MECH_META[t].label}</option>)}
         </select>
-
-        <span className="text-xs text-nyx-muted ml-auto">{filtered.length} entries</span>
+        <span className="text-xs ml-auto" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+          {filtered.length} entries
+        </span>
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="text-center py-16 text-nyx-muted text-sm">Loading...</div>
+        <div className="text-center py-16 text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+          LOADING...
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-nyx-muted text-sm">
-          {showActive ? "No active persistence mechanisms recorded." : "No removed entries."}
+        <div className="text-center py-16 text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+          {showActive ? "[ NO ACTIVE MECHANISMS ]" : "[ NO REMOVED ENTRIES ]"}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-nyx-border overflow-hidden">
-          <div
-            className="grid px-4 py-3"
-            style={{
-              gridTemplateColumns: "110px 90px 160px 1fr 100px 80px",
-              background: "#F8F6F1",
-              fontSize: 9, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.08em"
-            }}
-          >
-            <div>Type</div>
-            <div>Agent</div>
-            <div>Name</div>
-            <div>Payload</div>
-            <div>Trigger</div>
-            <div>Action</div>
+        <div className="hud-panel" style={{ overflow: "hidden" }}>
+          <div className="grid px-4 py-2.5"
+            style={{ gridTemplateColumns: "110px 90px 160px 1fr 100px 80px",
+              fontFamily: "'Fira Code', monospace", fontSize: 9, fontWeight: 700,
+              color: "#2A2A2A", textTransform: "uppercase", letterSpacing: "0.08em",
+              borderBottom: "1px solid #1F1F1F" }}>
+            <div>Type</div><div>Agent</div><div>Name</div><div>Payload</div><div>Trigger</div><div>Action</div>
           </div>
           {filtered.map((e, i) => {
-            const meta = MECH_META[e.mech_type] ?? { label: e.mech_type, color: "#888", icon: "❓" };
+            const meta = MECH_META[e.mech_type] ?? { label: e.mech_type, color: "#9A9A9A", icon: "?" };
             return (
-              <motion.div
-                key={e.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
+              <motion.div key={e.id}
+                initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
                 className="grid px-4 py-3 items-center"
                 style={{
                   gridTemplateColumns: "110px 90px 160px 1fr 100px 80px",
-                  borderTop: "1px solid #F0EDE6",
-                  opacity: e.status === "removed" ? 0.5 : 1,
-                }}
-              >
+                  borderTop: "1px solid #1F1F1F",
+                  opacity: e.status === "removed" ? 0.4 : 1,
+                }}>
                 <div>
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-white text-xs font-bold"
-                    style={{ background: meta.color, fontSize: 10 }}
-                  >
-                    {meta.icon} {meta.label}
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold"
+                    style={{ background: `${meta.color}10`, color: meta.color, border: `1px solid ${meta.color}30`, fontSize: 10,
+                      fontFamily: "'Fira Code', monospace" }}>
+                    {meta.label}
                   </span>
                 </div>
-                <div className="font-mono text-xs text-nyx-muted truncate" title={e.agent_id}>
+                <div className="text-xs truncate" title={e.agent_id}
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                   {e.agent_id.slice(0, 8)}...
                 </div>
-                <div className="font-semibold text-xs text-nyx-text truncate">{e.name}</div>
-                <div className="font-mono text-xs text-nyx-muted truncate" title={e.payload}>{e.payload || "—"}</div>
-                <div className="text-xs text-nyx-muted">{e.trigger || "—"}</div>
+                <div className="text-xs font-semibold truncate"
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                  {e.name}
+                </div>
+                <div className="text-xs truncate" title={e.payload}
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  {e.payload || "—"}
+                </div>
+                <div className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  {e.trigger || "—"}
+                </div>
                 <div>
                   {e.status === "active" ? (
-                    <button
-                      onClick={() => handleRemove(e.id)}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold text-nyx-red hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 size={11} /> Remove
+                    <button onClick={() => handleRemove(e.id)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs"
+                      style={{
+                        fontFamily: "'Fira Code', monospace", color: "#4A4A4A",
+                        background: "none", border: "none", cursor: "pointer",
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#FF3333"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                      <Trash2 size={10} /> REMOVE
                     </button>
                   ) : (
-                    <span className="text-xs text-nyx-muted">Removed</span>
+                    <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                      REMOVED
+                    </span>
                   )}
                 </div>
               </motion.div>
@@ -363,41 +312,52 @@ export default function Persistence() {
         </div>
       )}
 
-      {/* AD Command Reference */}
-      <div className="mt-8 bg-white rounded-2xl border border-nyx-border overflow-hidden">
-        <div className="px-5 py-4 border-b border-nyx-border">
-          <div className="text-sm font-bold text-nyx-text">Phase 6 Command Reference</div>
-          <div className="text-xs text-nyx-muted mt-0.5">AD attacks & persistence commands for the agent console</div>
+      {/* Command reference */}
+      <div className="mt-8 hud-panel" style={{ overflow: "hidden" }}>
+        <div className="px-5 py-4" style={{ borderBottom: "1px solid #1F1F1F" }}>
+          <div className="text-xs font-bold tracking-widest"
+            style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+            // PHASE_6_COMMAND_REFERENCE
+          </div>
+          <div className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+            AD attacks &amp; persistence commands for the agent console
+          </div>
         </div>
         <div className="p-5 grid grid-cols-2 gap-4">
           {[
-            { cat: "AD / Credential", color: "#B82828", cmds: [
-              { cmd: "lsass-dump [out_path]",                   desc: "MiniDumpWriteDump → LSASS memory dump" },
-              { cmd: "pth <domain> <user> <hash> <cmd>",        desc: "Pass-the-Hash via NetOnly logon" },
-              { cmd: "ptt <base64_kirbi>",                      desc: "Pass-the-Ticket — inject .kirbi into LSA" },
-              { cmd: "dcsync-local [out_dir]",                  desc: "Save SAM/SYSTEM/SECURITY for offline parse" },
-              { cmd: "dcsync-domain [out_dir]",                 desc: "VSS snapshot NTDS.dit + SYSTEM (Domain Admin)" },
+            { cat: "AD / CREDENTIAL", color: "#FF3333", cmds: [
+              { cmd: "lsass-dump [out_path]", desc: "MiniDumpWriteDump → LSASS memory dump" },
+              { cmd: "pth <domain> <user> <hash> <cmd>", desc: "Pass-the-Hash via NetOnly logon" },
+              { cmd: "ptt <base64_kirbi>", desc: "Pass-the-Ticket — inject .kirbi into LSA" },
+              { cmd: "dcsync-local [out_dir]", desc: "Save SAM/SYSTEM/SECURITY for offline parse" },
+              { cmd: "dcsync-domain [out_dir]", desc: "VSS snapshot NTDS.dit + SYSTEM (Domain Admin)" },
             ]},
-            { cat: "Persistence", color: "#1E3CB8", cmds: [
-              { cmd: "persist-reg <name> <payload>",            desc: "HKCU\\Run registry key" },
-              { cmd: "persist-svc <name> <bin_path>",           desc: "Windows service (auto-start)" },
-              { cmd: "persist-task <name> <cmd> [trigger]",     desc: "Scheduled task (schtasks.exe)" },
-              { cmd: "persist-startup <name> <src>",            desc: "Copy to Startup folder" },
-              { cmd: "persist-wmi <name> <cmd>",                desc: "WMI event subscription (60s interval)" },
-              { cmd: "persist-remove <type> <name>",            desc: "Remove: reg|svc|task|startup|wmi" },
-              { cmd: "persist-list",                            desc: "Enumerate all persistence on host" },
+            { cat: "PERSISTENCE", color: "#00FF41", cmds: [
+              { cmd: "persist-reg <name> <payload>", desc: "HKCU\\Run registry key" },
+              { cmd: "persist-svc <name> <bin_path>", desc: "Windows service (auto-start)" },
+              { cmd: "persist-task <name> <cmd> [trigger]", desc: "Scheduled task (schtasks.exe)" },
+              { cmd: "persist-startup <name> <src>", desc: "Copy to Startup folder" },
+              { cmd: "persist-wmi <name> <cmd>", desc: "WMI event subscription (60s interval)" },
+              { cmd: "persist-remove <type> <name>", desc: "Remove: reg|svc|task|startup|wmi" },
+              { cmd: "persist-list", desc: "Enumerate all persistence on host" },
             ]},
           ].map(section => (
             <div key={section.cat}>
-              <div className="text-xs font-bold mb-2" style={{ color: section.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                {section.cat}
+              <div className="text-xs font-bold mb-2 tracking-widest"
+                style={{ fontFamily: "'Fira Code', monospace", color: section.color, textTransform: "uppercase" }}>
+                // {section.cat}
               </div>
               {section.cmds.map(({ cmd, desc }) => (
                 <div key={cmd} className="mb-2">
-                  <code className="block text-xs rounded px-2 py-1 font-mono" style={{ background: "#F8F6F1", color: "#1A1A2E" }}>
+                  <code className="block text-xs px-2 py-1"
+                    style={{ fontFamily: "'Fira Code', monospace", background: "#050505",
+                      border: "1px solid #1F1F1F", color: "#00FF41" }}>
                     {cmd}
                   </code>
-                  <span className="text-xs text-nyx-muted mt-0.5 block">{desc}</span>
+                  <span className="text-xs mt-0.5 block"
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                    {desc}
+                  </span>
                 </div>
               ))}
             </div>
