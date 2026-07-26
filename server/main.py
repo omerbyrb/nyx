@@ -14,8 +14,10 @@ from api.pivot import router as pivot_router
 from api.intelligence import router as intel_router
 from api.persistence import router as persistence_router
 from api.extc2 import router as extc2_router
+from api.playbooks import router as playbooks_router
 from models.event import OperationEvent  # ensure table is created
 from models.persistence import PersistenceEntry  # ensure table is created
+from models.playbook import Playbook, PlaybookExecution  # ensure tables are created
 from core.crypto import init_crypto
 
 Base.metadata.create_all(bind=engine)
@@ -44,6 +46,7 @@ app.include_router(pivot_router)
 app.include_router(intel_router)
 app.include_router(persistence_router)
 app.include_router(extc2_router)
+app.include_router(playbooks_router)
 
 @app.get("/")
 def root():
