@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from db.database import get_db
-from api.auth import get_current_user
+from core.auth import get_current_operator as get_current_user
 from models.agent import Agent
 from models.task import Task as TaskModel
 

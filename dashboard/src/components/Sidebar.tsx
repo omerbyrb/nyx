@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, LayoutDashboard, Activity,
   Package, FileText, Users, Archive, Globe, Brain,
-  ShieldAlert, Wifi, Power
+  ShieldAlert, Wifi, Power, ListChecks
 } from "lucide-react";
 
 interface SidebarProps {
@@ -23,6 +23,7 @@ const navItems = [
   { id: "intelligence", label: "Intelligence", icon: Brain },
   { id: "persistence",  label: "Persistence",  icon: ShieldAlert },
   { id: "extc2",        label: "Ext C2",       icon: Wifi },
+  { id: "playbooks",    label: "Playbooks",    icon: ListChecks },
   { id: "admin",        label: "Operators",    icon: Users },
 ];
 
