@@ -27,7 +27,7 @@ function TagPill({ label, color }: { label: string; color: string }) {
   return (
     <span style={{ background: color + "15", color, border: `1px solid ${color}30`,
       borderRadius: 2, padding: "1px 8px", fontSize: "0.7rem", fontWeight: 600,
-      fontFamily: "'JetBrains Mono', monospace" }}>
+      fontFamily: "'Fira Code', monospace" }}>
       #{label}
     </span>
   );
@@ -70,21 +70,21 @@ export default function Reports() {
   const Spinner = () => (
     <div className="flex items-center justify-center p-16">
       <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        style={{ width: 20, height: 20, border: "1px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%" }} />
+        style={{ width: 20, height: 20, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
     </div>
   );
 
   return (
-    <div className="flex flex-col" style={{ minHeight: "100vh", padding: "28px", gap: "20px", background: "var(--bg)" }}>
+    <div className="flex flex-col" style={{ minHeight: "100vh", padding: "28px", gap: "20px", background: "#000" }}>
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
         className="flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-lg font-bold tracking-widest uppercase"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+            style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
             // REPORTS
           </h1>
-          <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+          <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
             IOC export · YARA rules · MITRE ATT&amp;CK mapping
           </p>
         </div>
@@ -122,16 +122,16 @@ export default function Reports() {
 
       {/* Tabs */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 }}
-        className="flex flex-shrink-0" style={{ width: "fit-content", border: "1px solid var(--border)" }}>
+        className="flex flex-shrink-0" style={{ width: "fit-content", border: "1px solid #1F1F1F" }}>
         {([["ioc", "IOC_REPORT", FileText], ["yara", "YARA_RULES", Shield]] as [Tab, string, React.ElementType][]).map(([t, label, Icon]) => (
           <motion.button key={t} onClick={() => handleTab(t)}
             className="relative flex items-center gap-1.5 px-4 py-2 text-xs font-semibold"
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "'Fira Code', monospace",
               background: tab === t ? "rgba(0,255,65,0.06)" : "transparent",
-              color: tab === t ? "var(--accent)" : "var(--text-faint)",
-              borderRight: t === "ioc" ? "1px solid var(--border)" : "none",
-              borderBottom: tab === t ? "1px solid var(--accent)" : "1px solid transparent",
+              color: tab === t ? "#00FF41" : "#4A4A4A",
+              borderRight: t === "ioc" ? "1px solid #1F1F1F" : "none",
+              borderBottom: tab === t ? "1px solid #00FF41" : "1px solid transparent",
               cursor: "pointer",
             }}>
             <Icon size={11} /> {label}
@@ -148,9 +148,9 @@ export default function Reports() {
             {!iocData && !loading && (
               <motion.button whileTap={{ scale: 0.99 }} onClick={fetchIOC}
                 className="flex flex-col items-center gap-3 p-16 cursor-pointer"
-                style={{ border: "1px dashed var(--border)", background: "transparent" }}>
-                <FileText size={28} style={{ color: "var(--border)" }} />
-                <p className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                style={{ border: "1px dashed #1F1F1F", background: "transparent" }}>
+                <FileText size={28} style={{ color: "#1F1F1F" }} />
+                <p className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
                   Click to generate IOC report
                 </p>
               </motion.button>
@@ -161,18 +161,18 @@ export default function Reports() {
                 {/* Summary cards */}
                 <div className="grid grid-cols-5 gap-3">
                   {[
-                    { label: "Total Agents",  value: iocData.summary.total_agents,    color: "var(--accent)" },
-                    { label: "Active Agents", value: iocData.summary.active_agents,   color: "var(--accent)" },
-                    { label: "Total Tasks",   value: iocData.summary.total_tasks,     color: "var(--text-muted)" },
-                    { label: "Completed",     value: iocData.summary.completed_tasks, color: "var(--accent)" },
-                    { label: "Failed",        value: iocData.summary.failed_tasks,    color: "var(--red)" },
+                    { label: "Total Agents",  value: iocData.summary.total_agents,    color: "#00FF41" },
+                    { label: "Active Agents", value: iocData.summary.active_agents,   color: "#00FF41" },
+                    { label: "Total Tasks",   value: iocData.summary.total_tasks,     color: "#9A9A9A" },
+                    { label: "Completed",     value: iocData.summary.completed_tasks, color: "#00FF41" },
+                    { label: "Failed",        value: iocData.summary.failed_tasks,    color: "#FF3333" },
                   ].map((s, i) => (
                     <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }} className="hud-panel p-4">
-                      <p className="text-xs mb-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                      <p className="text-xs mb-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
                         {s.label}
                       </p>
-                      <p className="text-2xl font-black" style={{ fontFamily: "'JetBrains Mono', monospace",
+                      <p className="text-2xl font-black" style={{ fontFamily: "'Fira Code', monospace",
                         color: s.color, textShadow: `0 0 8px ${s.color}40` }}>
                         {String(s.value).padStart(2, "0")}
                       </p>
@@ -183,7 +183,7 @@ export default function Reports() {
                 {/* Indicators */}
                 <div className="hud-panel p-5">
                   <h3 className="text-xs font-bold tracking-widest mb-4 flex items-center gap-2"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
                     <AlertTriangle size={11} /> // NETWORK_INDICATORS
                   </h3>
                   <div className="grid grid-cols-2 gap-6">
@@ -195,14 +195,14 @@ export default function Reports() {
                     ].map(({ label, items }) => (
                       <div key={label}>
                         <p className="text-xs mb-2 font-bold tracking-widest uppercase"
-                          style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>{label}</p>
+                          style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{label}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {items.length === 0
-                            ? <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--border)" }}>—</span>
+                            ? <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#1F1F1F" }}>—</span>
                             : items.map(v => (
                               <span key={v} className="text-xs px-2 py-0.5"
-                                style={{ fontFamily: "'JetBrains Mono', monospace", background: "#050505",
-                                  border: "1px solid var(--border)", color: "var(--text-faint)" }}>
+                                style={{ fontFamily: "'Fira Code', monospace", background: "#050505",
+                                  border: "1px solid #1F1F1F", color: "#4A4A4A" }}>
                                 {v}
                               </span>
                             ))}
@@ -216,18 +216,18 @@ export default function Reports() {
                 {iocData.ttps.length > 0 && (
                   <div className="hud-panel p-5">
                     <h3 className="text-xs font-bold tracking-widest mb-4 flex items-center gap-2"
-                      style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
+                      style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
                       <Shield size={11} /> // MITRE_ATT&CK_TTPS
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {iocData.ttps.map(ttp => (
                         <motion.div key={ttp.id} whileHover={{ scale: 1.02 }}
                           className="flex items-center gap-2 px-3 py-2"
-                          style={{ background: "#050505", border: "1px solid var(--border)" }}>
-                          <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
+                          style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+                          <span className="text-xs font-bold" style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
                             {ttp.id}
                           </span>
-                          <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                          <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                             {ttp.name}
                           </span>
                         </motion.div>
@@ -239,7 +239,7 @@ export default function Reports() {
                 {/* Agent breakdown */}
                 <div className="hud-panel p-5">
                   <h3 className="text-xs font-bold tracking-widest mb-4 flex items-center gap-2"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
                     <Terminal size={11} /> // COMPROMISED_HOSTS ({iocData.agents.length})
                   </h3>
                   <div className="flex flex-col gap-2">
@@ -249,33 +249,33 @@ export default function Reports() {
                         <motion.button
                           onClick={() => setExpandedAgent(expandedAgent === a.id ? null : a.id)}
                           className="w-full flex items-center gap-3 p-3 text-left"
-                          style={{ border: "1px solid var(--border)", background: "transparent", cursor: "pointer" }}
+                          style={{ border: "1px solid #1F1F1F", background: "transparent", cursor: "pointer" }}
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,0.02)"; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}>
                           <motion.span animate={{ rotate: expandedAgent === a.id ? 90 : 0 }}
                             transition={{ type: "spring", stiffness: 400, damping: 30 }}>
-                            <ChevronRight size={11} style={{ color: "var(--text-faint)" }} />
+                            <ChevronRight size={11} style={{ color: "#2A2A2A" }} />
                           </motion.span>
                           <div style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-                            background: a.persistence_installed ? "var(--red)" : "var(--accent)",
-                            boxShadow: a.persistence_installed ? "0 0 4px var(--red)" : "0 0 4px var(--accent)" }} />
+                            background: a.persistence_installed ? "#FF3333" : "#00FF41",
+                            boxShadow: a.persistence_installed ? "0 0 4px #FF3333" : "0 0 4px #00FF41" }} />
                           <span className="text-xs font-bold flex-1"
-                            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}>
+                            style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
                             {a.hostname}
                           </span>
-                          <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                          <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                             {a.ip}
                           </span>
-                          <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                          <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                             {a.os}/{a.arch}
                           </span>
                           <span className="text-xs px-2 py-0.5"
-                            style={{ fontFamily: "'JetBrains Mono', monospace", background: "#050505",
-                              border: "1px solid var(--border)", color: "var(--text-faint)" }}>
+                            style={{ fontFamily: "'Fira Code', monospace", background: "#050505",
+                              border: "1px solid #1F1F1F", color: "#4A4A4A" }}>
                             {a.task_count} tasks
                           </span>
-                          {a.persistence_installed && <TagPill label="persistence" color="var(--red)" />}
-                          {a.tags && a.tags.split(",").filter(Boolean).map(t => <TagPill key={t} label={t.trim()} color="var(--text-muted)" />)}
+                          {a.persistence_installed && <TagPill label="persistence" color="#FF3333" />}
+                          {a.tags && a.tags.split(",").filter(Boolean).map(t => <TagPill key={t} label={t.trim()} color="#9A9A9A" />)}
                         </motion.button>
                         <AnimatePresence>
                           {expandedAgent === a.id && (
@@ -283,8 +283,8 @@ export default function Reports() {
                               exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }}
                               className="overflow-hidden">
                               <div className="p-4 text-xs flex flex-col gap-2"
-                                style={{ fontFamily: "'JetBrains Mono', monospace", background: "#050505",
-                                  border: "1px solid var(--border)", borderTop: "none" }}>
+                                style={{ fontFamily: "'Fira Code', monospace", background: "#050505",
+                                  border: "1px solid #1F1F1F", borderTop: "none" }}>
                                 <div className="grid grid-cols-2 gap-x-8 gap-y-1">
                                   {[
                                     ["User",       a.username],
@@ -293,20 +293,20 @@ export default function Reports() {
                                     ["Last seen",  new Date(a.last_seen).toLocaleString()],
                                   ].map(([label, val]) => (
                                     <span key={label}>
-                                      <span style={{ color: "var(--text-faint)" }}>{label}: </span>
-                                      <span style={{ color: "var(--text-muted)" }}>{val}</span>
+                                      <span style={{ color: "#2A2A2A" }}>{label}: </span>
+                                      <span style={{ color: "#9A9A9A" }}>{val}</span>
                                     </span>
                                   ))}
                                 </div>
                                 {a.commands_run.length > 0 && (
                                   <div>
-                                    <p className="mb-1" style={{ color: "var(--text-faint)" }}>
+                                    <p className="mb-1" style={{ color: "#2A2A2A" }}>
                                       Commands run ({a.commands_run.length}):
                                     </p>
                                     <div className="flex flex-wrap gap-1">
                                       {[...new Set(a.commands_run)].map((c, ci) => (
                                         <span key={ci} className="px-2 py-0.5"
-                                          style={{ background: "rgba(0,255,65,0.05)", color: "var(--accent)",
+                                          style={{ background: "rgba(0,255,65,0.05)", color: "#00FF41",
                                             border: "1px solid rgba(0,255,65,0.15)" }}>{c}</span>
                                       ))}
                                     </div>
@@ -314,18 +314,18 @@ export default function Reports() {
                                 )}
                                 {a.file_downloads.length > 0 && (
                                   <div>
-                                    <p className="mb-1" style={{ color: "var(--text-faint)" }}>Files exfiltrated:</p>
+                                    <p className="mb-1" style={{ color: "#2A2A2A" }}>Files exfiltrated:</p>
                                     <div className="flex flex-col gap-0.5">
                                       {a.file_downloads.map((f, fi) => (
-                                        <span key={fi} style={{ color: "var(--red)" }}>↑ {f}</span>
+                                        <span key={fi} style={{ color: "#FF3333" }}>↑ {f}</span>
                                       ))}
                                     </div>
                                   </div>
                                 )}
                                 {a.notes && (
                                   <p>
-                                    <span style={{ color: "var(--text-faint)" }}>Notes: </span>
-                                    <span style={{ color: "var(--text-muted)" }}>{a.notes}</span>
+                                    <span style={{ color: "#2A2A2A" }}>Notes: </span>
+                                    <span style={{ color: "#9A9A9A" }}>{a.notes}</span>
                                   </p>
                                 )}
                               </div>
@@ -348,9 +348,9 @@ export default function Reports() {
             {!yaraData && !loading && (
               <motion.button whileTap={{ scale: 0.99 }} onClick={fetchYARA}
                 className="flex flex-col items-center gap-3 p-16 cursor-pointer"
-                style={{ border: "1px dashed var(--border)", background: "transparent" }}>
-                <Shield size={28} style={{ color: "var(--border)" }} />
-                <p className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                style={{ border: "1px dashed #1F1F1F", background: "transparent" }}>
+                <Shield size={28} style={{ color: "#1F1F1F" }} />
+                <p className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
                   Click to generate YARA rules
                 </p>
               </motion.button>
@@ -358,17 +358,17 @@ export default function Reports() {
             {loading && <Spinner />}
             {yaraData && !loading && (
               <div className="hud-panel" style={{ overflow: "hidden" }}>
-                <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid #1F1F1F" }}>
                   <span className="text-xs font-bold tracking-widest flex items-center gap-2"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
                     <Shield size={11} /> nyx-detection.yar
                   </span>
-                  <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                  <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
                     {yaraData.split("\n").length} lines
                   </span>
                 </div>
                 <pre className="overflow-auto p-5 text-xs leading-6"
-                  style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)", maxHeight: "70vh" }}>
+                  style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0", maxHeight: "70vh" }}>
                   <YaraHighlight source={yaraData} />
                 </pre>
               </div>
@@ -385,11 +385,11 @@ function YaraHighlight({ source }: { source: string }) {
   return (
     <>
       {lines.map((line, i) => {
-        let color = "var(--text-faint)";
+        let color = "#4A4A4A";
         if (line.trimStart().startsWith("//") || line.trimStart().startsWith("/*") || line.trimStart().startsWith("*"))
-          color = "var(--text-faint)";
-        else if (/^rule /.test(line)) color = "var(--accent)";
-        else if (/^\s+(meta:|strings:|condition:)$/.test(line)) color = "var(--text-muted)";
+          color = "#2A2A2A";
+        else if (/^rule /.test(line)) color = "#00FF41";
+        else if (/^\s+(meta:|strings:|condition:)$/.test(line)) color = "#9A9A9A";
         else if (/^\s+\$/.test(line)) color = "#00CC33";
         else if (/^\s+(description|author|date|severity|platform|reference)\s*=/.test(line)) color = "#FFB800";
         return <span key={i} style={{ color, display: "block" }}>{line || " "}</span>;
