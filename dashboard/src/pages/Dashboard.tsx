@@ -65,6 +65,36 @@ function StatCard({
   );
 }
 
+function useCopy() {
+  const [copied, setCopied] = useState<string | null>(null);
+  const copy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 1500);
+  };
+  return { copied, copy };
+}
+
+function CopyCell({ value, copyKey, color = "#9A9A9A" }: { value: string; copyKey: string; color?: string }) {
+  const { copied, copy } = useCopy();
+  const isCopied = copied === copyKey;
+  return (
+    <span
+      onClick={() => copy(value, copyKey)}
+      title="Click to copy"
+      className="text-sm cursor-pointer select-none"
+      style={{
+        fontFamily: "'Fira Code', monospace",
+        color: isCopied ? "#00FF41" : color,
+        textShadow: isCopied ? "0 0 6px rgba(0,255,65,0.6)" : "none",
+        transition: "color 0.15s, text-shadow 0.15s",
+      }}
+    >
+      {isCopied ? "COPIED!" : value}
+    </span>
+  );
+}
+
 function AgentRow({ agent, index }: { agent: Agent; index: number }) {
   const diffSec = Math.floor((Date.now() - new Date(agent.last_seen + "Z").getTime()) / 1000);
   const alive = diffSec < 30;
@@ -97,21 +127,11 @@ function AgentRow({ agent, index }: { agent: Agent; index: number }) {
               />
             )}
           </div>
-          <span
-            className="text-sm"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}
-          >
-            {agent.hostname}
-          </span>
+          <CopyCell value={agent.hostname} copyKey={`host-${agent.id}`} color="#E0E0E0" />
         </div>
       </td>
       <td className="px-4 py-3">
-        <span
-          className="text-sm"
-          style={{ fontFamily: "'Fira Code', monospace", color: "#9A9A9A" }}
-        >
-          {agent.username}
-        </span>
+        <CopyCell value={agent.username} copyKey={`user-${agent.id}`} />
       </td>
       <td className="px-4 py-3">
         <span
@@ -127,12 +147,7 @@ function AgentRow({ agent, index }: { agent: Agent; index: number }) {
         </span>
       </td>
       <td className="px-4 py-3">
-        <span
-          className="text-sm"
-          style={{ fontFamily: "'Fira Code', monospace", color: "#9A9A9A" }}
-        >
-          {agent.ip}
-        </span>
+        <CopyCell value={agent.ip} copyKey={`ip-${agent.id}`} />
       </td>
       <td className="px-4 py-3">
         <span
