@@ -24,21 +24,21 @@ interface Profile { name: string; description: string; }
 function Toggle({ value, onChange, label, desc }: { value: boolean; onChange: () => void; label: string; desc: string }) {
   return (
     <div className="flex items-center gap-3 p-3"
-      style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+      style={{ background: "#050505", border: "1px solid var(--border)" }}>
       <motion.button onClick={onChange} whileTap={{ scale: 0.95 }}
         className="relative flex-shrink-0"
-        style={{ width: 34, height: 18, border: `1px solid ${value ? "#00FF41" : "#2A2A2A"}`,
+        style={{ width: 34, height: 18, border: `1px solid ${value ? "var(--accent)" : "var(--text-faint)"}`,
           background: value ? "rgba(0,255,65,0.08)" : "transparent", borderRadius: 1 }}>
         <motion.div animate={{ x: value ? 16 : 2 }} transition={{ type: "spring", stiffness: 500, damping: 30 }}
           style={{ position: "absolute", top: 2, width: 12, height: 12,
-            background: value ? "#00FF41" : "#2A2A2A",
-            boxShadow: value ? "0 0 4px #00FF41" : "none" }} />
+            background: value ? "var(--accent)" : "var(--text-faint)",
+            boxShadow: value ? "0 0 4px var(--accent)" : "none" }} />
       </motion.button>
       <div>
-        <p className="text-xs font-semibold" style={{ fontFamily: "'Fira Code', monospace", color: value ? "#E0E0E0" : "#4A4A4A" }}>
+        <p className="text-xs font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace", color: value ? "var(--text)" : "var(--text-faint)" }}>
           {label}
         </p>
-        <p className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{desc}</p>
+        <p className="text-xs mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>{desc}</p>
       </div>
     </div>
   );
@@ -46,11 +46,11 @@ function Toggle({ value, onChange, label, desc }: { value: boolean; onChange: ()
 
 const Divider = ({ label }: { label: string }) => (
   <div className="flex items-center gap-3 py-1">
-    <div style={{ flex: 1, height: 1, background: "#1F1F1F" }} />
-    <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+    <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+    <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
       // {label}
     </span>
-    <div style={{ flex: 1, height: 1, background: "#1F1F1F" }} />
+    <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
   </div>
 );
 
@@ -113,19 +113,19 @@ export default function Builder() {
   };
 
   const inputStyle = {
-    background: "#000", border: "1px solid #1F1F1F",
-    color: "#E0E0E0", fontFamily: "'Fira Code', monospace",
+    background: "var(--bg)", border: "1px solid var(--border)",
+    color: "var(--text)", fontFamily: "'JetBrains Mono', monospace",
     fontSize: "12px", padding: "8px 12px", outline: "none",
   };
 
   return (
-    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
+    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "var(--bg)" }}>
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
         <h1 className="text-lg font-bold tracking-widest uppercase"
-          style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+          style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
           // PAYLOAD_BUILDER
         </h1>
-        <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+        <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
           compile a custom agent with embedded C2 URL
         </p>
       </motion.div>
@@ -138,12 +138,12 @@ export default function Builder() {
           {/* C2 URL */}
           <div>
             <label className="block text-xs mb-2 tracking-widest uppercase"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               C2_SERVER_URL
             </label>
             <input value={c2url} onChange={e => setC2url(e.target.value)}
               style={{ ...inputStyle, width: "100%" }} placeholder="https://your-server.com" />
-            <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               Agent beacons back to this URL
             </p>
           </div>
@@ -151,7 +151,7 @@ export default function Builder() {
           {/* Platform */}
           <div>
             <label className="block text-xs mb-3 tracking-widest uppercase"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               TARGET_PLATFORM
             </label>
             <div className="grid grid-cols-5 gap-2">
@@ -163,16 +163,16 @@ export default function Builder() {
                     className="flex flex-col items-center gap-1 py-3 px-1"
                     style={{
                       background: active ? "rgba(0,255,65,0.05)" : "transparent",
-                      border: `1px solid ${active ? "rgba(0,255,65,0.3)" : "#1F1F1F"}`,
-                      borderLeft: active ? "2px solid #00FF41" : "1px solid #1F1F1F",
+                      border: `1px solid ${active ? "rgba(0,255,65,0.3)" : "var(--border)"}`,
+                      borderLeft: active ? "2px solid var(--accent)" : "1px solid var(--border)",
                       cursor: "pointer",
                     }}>
                     <span className="text-base">{p.icon}</span>
                     <span className="text-xs font-semibold"
-                      style={{ fontFamily: "'Fira Code', monospace", color: active ? "#00FF41" : "#4A4A4A" }}>
+                      style={{ fontFamily: "'JetBrains Mono', monospace", color: active ? "var(--accent)" : "var(--text-faint)" }}>
                       {p.label}
                     </span>
-                    <span style={{ fontSize: "9px", fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{p.sub}</span>
+                    <span style={{ fontSize: "9px", fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>{p.sub}</span>
                   </motion.button>
                 );
               })}
@@ -187,7 +187,7 @@ export default function Builder() {
             ].map(({ label, val, setter, min, max }) => (
               <div key={label}>
                 <label className="block text-xs mb-2 tracking-widest"
-                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                   {label}
                 </label>
                 <input type="number" value={val} onChange={e => setter(+e.target.value)}
@@ -199,7 +199,7 @@ export default function Builder() {
           {/* Jitter Mode */}
           <div>
             <label className="block text-xs mb-2 tracking-widest uppercase"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               JITTER_MODE
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -210,14 +210,14 @@ export default function Builder() {
                     className="flex flex-col gap-1 p-2.5 text-left"
                     style={{
                       background: active ? "rgba(0,255,65,0.04)" : "transparent",
-                      border: `1px solid ${active ? "rgba(0,255,65,0.25)" : "#1F1F1F"}`,
+                      border: `1px solid ${active ? "rgba(0,255,65,0.25)" : "var(--border)"}`,
                       cursor: "pointer",
                     }}>
                     <span className="text-xs font-semibold"
-                      style={{ fontFamily: "'Fira Code', monospace", color: active ? "#00FF41" : "#4A4A4A" }}>
+                      style={{ fontFamily: "'JetBrains Mono', monospace", color: active ? "var(--accent)" : "var(--text-faint)" }}>
                       {m.label}
                     </span>
-                    <span style={{ fontSize: "9px", fontFamily: "'Fira Code', monospace", color: "#2A2A2A", lineHeight: "1.3" }}>
+                    <span style={{ fontSize: "9px", fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)", lineHeight: "1.3" }}>
                       {m.desc}
                     </span>
                   </motion.button>
@@ -229,14 +229,14 @@ export default function Builder() {
           {/* C2 Profile */}
           <div>
             <label className="block text-xs mb-2 tracking-widest uppercase"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               <span className="flex items-center gap-1.5"><Layers size={11} /> C2_TRAFFIC_PROFILE</span>
             </label>
             <select value={profile} onChange={e => setProfile(e.target.value)}
               style={{ ...inputStyle, width: "100%", cursor: "pointer" }}>
               {profiles.map(p => <option key={p.name} value={p.name}>{p.name} — {p.description}</option>)}
             </select>
-            <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               Shapes HTTP traffic to mimic a legitimate service
             </p>
           </div>
@@ -244,12 +244,12 @@ export default function Builder() {
           {/* Kill Date */}
           <div>
             <label className="block text-xs mb-2 tracking-widest uppercase"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               <span className="flex items-center gap-1.5"><Calendar size={11} /> KILL_DATE (optional)</span>
             </label>
             <input type="date" value={killDate} onChange={e => setKillDate(e.target.value)}
               style={{ ...inputStyle, width: "100%", colorScheme: "dark" }} />
-            <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
               Agent self-terminates after this date
             </p>
           </div>
@@ -283,7 +283,7 @@ export default function Builder() {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }} className="pl-11 overflow-hidden">
                     <label className="block text-xs mb-1.5"
-                      style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+                      style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                       Parent process name
                     </label>
                     <input value={ppidTarget} onChange={e => setPpidTarget(e.target.value)}
@@ -297,8 +297,8 @@ export default function Builder() {
           {/* Post-Exploitation capabilities */}
           <div>
             <Divider label="POST-EXPLOITATION · v0.8.0" />
-            <div className="mt-3 p-3 space-y-2" style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
-              <p className="text-xs mb-2" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            <div className="mt-3 p-3 space-y-2" style={{ background: "#050505", border: "1px solid var(--border)" }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                 Capabilities compiled into this agent:
               </p>
               {[
@@ -310,12 +310,12 @@ export default function Builder() {
                 ["AS-REP Roasting",     "asrep-roast <user> <domain> <dc> — extract AS-REP hash"],
               ].map(([name, desc]) => (
                 <div key={name} className="flex items-start gap-2">
-                  <span style={{ color: "#00FF41", fontSize: "10px", marginTop: 3 }}>▸</span>
+                  <span style={{ color: "var(--accent)", fontSize: "10px", marginTop: 3 }}>▸</span>
                   <div>
-                    <span className="text-xs font-semibold" style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                    <span className="text-xs font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}>
                       {name}
                     </span>
-                    <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                    <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                       {" "}— {desc}
                     </span>
                   </div>
@@ -327,8 +327,8 @@ export default function Builder() {
           {/* P2P & Pivot */}
           <div>
             <Divider label="P2P & PIVOT · v0.9.0" />
-            <div className="mt-3 p-3 space-y-2" style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
-              <p className="text-xs mb-2" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            <div className="mt-3 p-3 space-y-2" style={{ background: "#050505", border: "1px solid var(--border)" }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                 Pivot infrastructure — all platforms unless noted:
               </p>
               {[
@@ -341,10 +341,10 @@ export default function Builder() {
                 <div key={name} className="flex items-start gap-2">
                   <span style={{ color: "#00CC33", fontSize: "10px", marginTop: 3 }}>▸</span>
                   <div>
-                    <span className="text-xs font-semibold" style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                    <span className="text-xs font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}>
                       {name}
                     </span>
-                    <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                    <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                       {" "}— {desc}
                     </span>
                   </div>
@@ -374,12 +374,12 @@ export default function Builder() {
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="p-4 flex items-start gap-3"
                 style={{ background: "rgba(0,255,65,0.05)", border: "1px solid rgba(0,255,65,0.25)" }}>
-                <CheckCircle size={14} style={{ color: "#00FF41", flexShrink: 0, marginTop: 1 }} />
+                <CheckCircle size={14} style={{ color: "var(--accent)", flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <div className="text-xs font-bold" style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+                  <div className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
                     BUILD_SUCCESS
                   </div>
-                  <div className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  <div className="text-xs mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                     {filename}
                   </div>
                 </div>
@@ -389,12 +389,12 @@ export default function Builder() {
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="p-4 flex items-start gap-3"
                 style={{ background: "rgba(255,51,51,0.05)", border: "1px solid rgba(255,51,51,0.25)" }}>
-                <AlertCircle size={14} style={{ color: "#FF3333", flexShrink: 0, marginTop: 1 }} />
+                <AlertCircle size={14} style={{ color: "var(--red)", flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <div className="text-xs font-bold" style={{ fontFamily: "'Fira Code', monospace", color: "#FF3333" }}>
+                  <div className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--red)" }}>
                     BUILD_FAILED
                   </div>
-                  <div className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  <div className="text-xs mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                     {error}
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export default function Builder() {
           {/* Deploy guide */}
           <div className="hud-panel p-4 space-y-3">
             <div className="text-xs font-bold tracking-widest flex items-center gap-1.5"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
               <Download size={11} /> // DEPLOY
             </div>
             <div className="space-y-2">
@@ -417,10 +417,10 @@ export default function Builder() {
               ].map(([step, desc]) => (
                 <div key={step} className="flex gap-3">
                   <span className="text-xs font-bold flex-shrink-0 pt-0.5 w-7"
-                    style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
                     {step}
                   </span>
-                  <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+                  <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                     {desc}
                   </span>
                 </div>
@@ -431,7 +431,7 @@ export default function Builder() {
           {/* Build summary */}
           <div className="hud-panel p-4 space-y-0.5">
             <div className="text-xs font-bold tracking-widest mb-3 flex items-center gap-1.5"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
               <Shield size={11} /> // BUILD_SUMMARY
             </div>
             {[
@@ -450,9 +450,9 @@ export default function Builder() {
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between items-center py-1.5"
                 style={{ borderBottom: "1px solid #0A0A0A" }}>
-                <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>{k}</span>
+                <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>{k}</span>
                 <span className="text-xs truncate max-w-32"
-                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>{v}</span>
+                  style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>{v}</span>
               </div>
             ))}
           </div>

@@ -47,28 +47,28 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
       className="flex items-center gap-1.5 text-xs px-3 py-1.5"
       style={{
         background: "transparent",
-        border: "1px solid #1F1F1F",
-        color: danger ? "#4A4A4A" : "#4A4A4A",
-        fontFamily: "'Fira Code', monospace",
+        border: "1px solid var(--border)",
+        color: danger ? "var(--text-faint)" : "var(--text-faint)",
+        fontFamily: "'JetBrains Mono', monospace",
         cursor: "pointer",
         transition: "all 0.12s",
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLElement;
         if (danger) {
-          el.style.color = "#FF3333";
+          el.style.color = "var(--red)";
           el.style.borderColor = "rgba(255,51,51,0.3)";
           el.style.background = "rgba(255,51,51,0.05)";
         } else {
-          el.style.color = "#00FF41";
+          el.style.color = "var(--accent)";
           el.style.borderColor = "rgba(0,255,65,0.25)";
           el.style.background = "rgba(0,255,65,0.04)";
         }
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLElement;
-        el.style.color = "#4A4A4A";
-        el.style.borderColor = "#1F1F1F";
+        el.style.color = "var(--text-faint)";
+        el.style.borderColor = "var(--border)";
         el.style.background = "transparent";
       }}
     >
@@ -81,7 +81,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="hud-panel hud-corners"
+      className="card"
       style={{ padding: "20px" }}
     >
       {/* Header */}
@@ -90,10 +90,10 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
           <div
             className="w-9 h-9 flex items-center justify-center text-sm font-bold"
             style={{
-              fontFamily: "'Fira Code', monospace",
+              fontFamily: "'JetBrains Mono', monospace",
               background: "transparent",
-              border: `1px solid ${alive ? "rgba(0,255,65,0.3)" : "#1F1F1F"}`,
-              color: alive ? "#00FF41" : "#4A4A4A",
+              border: `1px solid ${alive ? "rgba(0,255,65,0.3)" : "var(--border)"}`,
+              color: alive ? "var(--accent)" : "var(--text-faint)",
               boxShadow: alive ? "0 0 8px rgba(0,255,65,0.15)" : "none",
             }}
           >
@@ -102,13 +102,13 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
           <div>
             <div
               className="text-sm font-bold"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}
             >
               {agent.hostname}
             </div>
             <div
               className="text-xs mt-0.5"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
             >
               {agent.id.slice(0, 16)}…
             </div>
@@ -116,7 +116,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
         </div>
         <span
           className={`text-xs px-2 py-0.5 ${alive ? "status-active" : "status-offline"}`}
-          style={{ fontFamily: "'Fira Code', monospace" }}
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           {alive ? "ACTIVE" : "OFFLINE"}
         </span>
@@ -125,7 +125,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
       {/* Metadata grid */}
       <div
         className="grid grid-cols-2 gap-x-4 gap-y-2.5 mb-4 p-3"
-        style={{ background: "#050505", border: "1px solid #1A1A1A" }}
+        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 4 }}
       >
         {[
           ["USER",    agent.username],
@@ -138,13 +138,13 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
           <div key={label}>
             <div
               className="text-xs mb-0.5 tracking-widest"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A", fontSize: "9px" }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)", fontSize: "9px" }}
             >
               {label}
             </div>
             <div
               className="text-xs"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#9A9A9A" }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)" }}
             >
               {value}
             </div>
@@ -161,8 +161,8 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
             exit={{ opacity: 0, height: 0, marginBottom: 0 }}
             className="flex items-center gap-2 px-3 py-1.5 text-xs overflow-hidden"
             style={{
-              fontFamily: "'Fira Code', monospace",
-              color: "#00FF41",
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "var(--accent)",
               background: "rgba(0,255,65,0.05)",
               border: "1px solid rgba(0,255,65,0.2)",
             }}
@@ -214,7 +214,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
             />
             <span
               className="text-xs"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
             >
               sec
             </span>
@@ -277,7 +277,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
               >
                 {savingNotes
                   ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      style={{ width: 10, height: 10, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
+                      style={{ width: 10, height: 10, border: "1px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%" }} />
                   : <CheckCircle size={10} />}
                 SAVE
               </button>
@@ -291,7 +291,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
       {(tags || notes) && action !== "notes" && (
         <div
           className="mt-3 pt-3 flex flex-col gap-1.5"
-          style={{ borderTop: "1px solid #1F1F1F" }}
+          style={{ borderTop: "1px solid var(--border)" }}
         >
           {tags && (
             <div className="flex flex-wrap gap-1">
@@ -300,8 +300,8 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
                   key={t}
                   className="text-xs px-1.5 py-0.5"
                   style={{
-                    fontFamily: "'Fira Code', monospace",
-                    color: "#00FF41",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    color: "var(--accent)",
                     background: "rgba(0,255,65,0.05)",
                     border: "1px solid rgba(0,255,65,0.15)",
                   }}
@@ -314,7 +314,7 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
           {notes && (
             <p
               className="text-xs"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
             >
               {notes}
             </p>
@@ -343,7 +343,7 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
   }, []);
 
   return (
-    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
+    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "var(--bg)" }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -353,19 +353,18 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
       >
         <div>
           <h1
-            className="text-lg font-bold tracking-widest uppercase"
             style={{
-              fontFamily: "'Fira Code', monospace",
-              color: "#00FF41",
-              textShadow: "0 0 10px rgba(0,255,65,0.5)",
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 700,
+              fontSize: "20px",
+              color: "var(--text)",
+              letterSpacing: "-0.02em",
+              marginBottom: 4,
             }}
           >
-            // AGENTS
+            Agents
           </h1>
-          <p
-            className="text-xs mt-1"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
-          >
+          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "13px", color: "var(--text-muted)" }}>
             {agents.length} registered nodes
           </p>
         </div>
@@ -390,8 +389,8 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="col-span-2 hud-panel p-12 text-center text-xs"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}
+            className="col-span-2 card p-12 text-center text-xs"
+            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
           >
             {"[ NO AGENTS CONNECTED ]"}
           </motion.div>
