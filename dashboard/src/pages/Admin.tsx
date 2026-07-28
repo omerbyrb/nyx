@@ -10,9 +10,9 @@ interface Operator {
 }
 
 const ROLE_COLORS: Record<string, { color: string; border: string }> = {
-  admin:    { color: "#FF3333", border: "rgba(255,51,51,0.3)" },
-  operator: { color: "#00FF41", border: "rgba(0,255,65,0.3)" },
-  readonly: { color: "#4A4A4A", border: "#1F1F1F" },
+  admin:    { color: "var(--red)", border: "rgba(255,51,51,0.3)" },
+  operator: { color: "var(--accent)", border: "rgba(0,255,65,0.3)" },
+  readonly: { color: "var(--text-faint)", border: "var(--border)" },
 };
 
 const rolePill = (role: string) => {
@@ -22,7 +22,7 @@ const rolePill = (role: string) => {
       background: `${s.color}0D`, color: s.color,
       border: `1px solid ${s.border}`, borderRadius: 2,
       padding: "2px 8px", fontSize: "0.7rem", fontWeight: 700,
-      fontFamily: "'Fira Code', monospace",
+      fontFamily: "'JetBrains Mono', monospace",
     }}>
       {role}
     </span>
@@ -82,22 +82,22 @@ export default function Admin() {
   };
 
   const inputStyle = {
-    background: "#000", border: "1px solid #1F1F1F",
-    color: "#E0E0E0", fontFamily: "'Fira Code', monospace",
+    background: "var(--bg)", border: "1px solid var(--border)",
+    color: "var(--text)", fontFamily: "'JetBrains Mono', monospace",
     fontSize: "12px", padding: "8px 12px", outline: "none",
   };
 
   return (
-    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
+    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "var(--bg)" }}>
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
         className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold tracking-widest uppercase"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
             // OPERATORS
           </h1>
-          <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+          <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
             multi-operator RBAC — admin · operator · readonly
           </p>
         </div>
@@ -113,9 +113,9 @@ export default function Admin() {
         {error && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex items-center gap-2 px-3 py-2.5 text-xs"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#FF3333", background: "rgba(255,51,51,0.05)", border: "1px solid rgba(255,51,51,0.2)" }}>
+            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--red)", background: "rgba(255,51,51,0.05)", border: "1px solid rgba(255,51,51,0.2)" }}>
             <X size={12} /> {error}
-            <button onClick={() => setError("")} className="ml-auto" style={{ color: "#4A4A4A" }}><X size={11} /></button>
+            <button onClick={() => setError("")} className="ml-auto" style={{ color: "var(--text-faint)" }}><X size={11} /></button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -127,7 +127,7 @@ export default function Admin() {
             exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}
             className="hud-panel p-4 overflow-hidden">
             <div className="text-xs font-bold mb-4 tracking-widest"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
               // NEW_OPERATOR
             </div>
             <div className="grid grid-cols-3 gap-3 mb-4">
@@ -147,7 +147,7 @@ export default function Admin() {
                 className="btn-primary px-4 py-1.5 flex items-center gap-2">
                 {creating
                   ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      style={{ width: 10, height: 10, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
+                      style={{ width: 10, height: 10, border: "1px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%" }} />
                   : <Check size={11} />}
                 CREATE
               </motion.button>
@@ -162,14 +162,14 @@ export default function Admin() {
         className="hud-panel" style={{ overflow: "hidden" }}>
         <div className="grid px-4 py-2.5 text-xs tracking-widest uppercase"
           style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto",
-            borderBottom: "1px solid #1F1F1F",
-            fontFamily: "'Fira Code', monospace", color: "#2A2A2A", fontWeight: 400 }}>
+            borderBottom: "1px solid var(--border)",
+            fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)", fontWeight: 400 }}>
           <span>Username</span><span>Role</span><span>Status</span><span>Last Login</span><span>Actions</span>
         </div>
         {loading && (
           <div className="flex items-center justify-center p-12">
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              style={{ width: 18, height: 18, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
+              style={{ width: 18, height: 18, border: "1px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%" }} />
           </div>
         )}
         <AnimatePresence>
@@ -178,16 +178,16 @@ export default function Admin() {
               initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
               transition={{ delay: i * 0.04 }}
               className="grid items-center px-4 py-3"
-              style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto", borderBottom: "1px solid #1F1F1F" }}
+              style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr auto", borderBottom: "1px solid var(--border)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,0.02)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
             >
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-center text-xs font-bold"
-                  style={{ width: 26, height: 26, border: "1px solid rgba(0,255,65,0.2)", color: "#00FF41", fontFamily: "'Fira Code', monospace" }}>
+                  style={{ width: 26, height: 26, border: "1px solid rgba(0,255,65,0.2)", color: "var(--accent)", fontFamily: "'JetBrains Mono', monospace" }}>
                   {op.username[0].toUpperCase()}
                 </div>
-                <span className="font-bold text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>
+                <span className="font-bold text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}>
                   {op.username}
                 </span>
               </div>
@@ -200,44 +200,44 @@ export default function Admin() {
                       <option value="admin">admin</option>
                       <option value="readonly">readonly</option>
                     </select>
-                    <button onClick={() => updateRole(op.id, editRole)} style={{ color: "#00FF41" }}><Check size={12} /></button>
-                    <button onClick={() => setEditId(null)} style={{ color: "#4A4A4A" }}><X size={12} /></button>
+                    <button onClick={() => updateRole(op.id, editRole)} style={{ color: "var(--accent)" }}><Check size={12} /></button>
+                    <button onClick={() => setEditId(null)} style={{ color: "var(--text-faint)" }}><X size={12} /></button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
                     {rolePill(op.role)}
-                    {op.role === "admin" && <Shield size={10} style={{ color: "#FF3333" }} />}
+                    {op.role === "admin" && <Shield size={10} style={{ color: "var(--red)" }} />}
                   </div>
                 )}
               </div>
               <div>
                 <span className="flex items-center gap-1.5 text-xs"
-                  style={{ fontFamily: "'Fira Code', monospace", color: op.is_active ? "#00FF41" : "#4A4A4A" }}>
-                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: op.is_active ? "#00FF41" : "#2A2A2A",
-                    boxShadow: op.is_active ? "0 0 4px #00FF41" : "none" }} />
+                  style={{ fontFamily: "'JetBrains Mono', monospace", color: op.is_active ? "var(--accent)" : "var(--text-faint)" }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: op.is_active ? "var(--accent)" : "var(--text-faint)",
+                    boxShadow: op.is_active ? "0 0 4px var(--accent)" : "none" }} />
                   {op.is_active ? "ONLINE" : "DISABLED"}
                 </span>
               </div>
-              <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
+              <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
                 {op.last_login ? new Date(op.last_login).toLocaleString() : "never"}
               </span>
               <div className="flex items-center gap-1">
                 <motion.button whileTap={{ scale: 0.9 }} onClick={() => { setEditId(op.id); setEditRole(op.role); }}
-                  style={{ color: "#4A4A4A", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#00FF41"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                  style={{ color: "var(--text-faint)", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-faint)"; }}>
                   <Edit3 size={12} />
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.9 }} onClick={() => toggleActive(op)}
-                  style={{ color: "#4A4A4A", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#9A9A9A"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                  style={{ color: "var(--text-faint)", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-faint)"; }}>
                   <Eye size={12} />
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.9 }} onClick={() => deleteOperator(op.id)}
-                  style={{ color: "#4A4A4A", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#FF3333"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
+                  style={{ color: "var(--text-faint)", cursor: "pointer", background: "none", border: "none", padding: "4px" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--red)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-faint)"; }}>
                   <Trash2 size={12} />
                 </motion.button>
               </div>
@@ -246,7 +246,7 @@ export default function Admin() {
         </AnimatePresence>
         {!loading && operators.length === 0 && (
           <div className="text-center py-12 text-xs"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
+            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
             {"[ NO OPERATORS FOUND ]"}
           </div>
         )}
@@ -256,7 +256,7 @@ export default function Admin() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
         className="hud-panel p-4">
         <div className="text-xs tracking-widest mb-3"
-          style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41" }}>
+          style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)" }}>
           // ROLE_PERMISSIONS
         </div>
         <div className="grid grid-cols-3 gap-4 text-xs">
@@ -266,12 +266,12 @@ export default function Admin() {
             { role: "readonly", perms: ["View agents", "View tasks", "View reports", "No execution"] },
           ].map(({ role, perms }) => (
             <div key={role} className="flex flex-col gap-2 p-3"
-              style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+              style={{ background: "#050505", border: "1px solid var(--border)" }}>
               <div className="mb-1">{rolePill(role)}</div>
               {perms.map(p => (
                 <span key={p} className="flex items-center gap-1.5"
-                  style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
-                  <Check size={9} style={{ color: "#00FF41", flexShrink: 0 }} /> {p}
+                  style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                  <Check size={9} style={{ color: "var(--accent)", flexShrink: 0 }} /> {p}
                 </span>
               ))}
             </div>

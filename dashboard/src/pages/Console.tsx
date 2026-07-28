@@ -46,11 +46,11 @@ const HELP = `NYX C2 — Command Reference
 
 const lineColor = (type: string): string => {
   switch (type) {
-    case "cmd":    return "#00FF41";
-    case "output": return "#9A9A9A";
-    case "error":  return "#FF3333";
+    case "cmd":    return "var(--accent)";
+    case "output": return "var(--text-muted)";
+    case "error":  return "var(--red)";
     case "system": return "#FFB800";
-    default:       return "#4A4A4A";
+    default:       return "var(--text-faint)";
   }
 };
 
@@ -59,7 +59,7 @@ export default function Console() {
   const [selectedAgent, setAgent] = useState("");
   const [command, setCommand]     = useState("");
   const [lines, setLines]         = useState<Line[]>([
-    { type: "system", text: "NYX C2 // INTERACTIVE SHELL v1.4.0" },
+    { type: "system", text: "NYX C2 // INTERACTIVE SHELL v1.5.0" },
     { type: "info",   text: "Select an agent and type a command. Type 'help' for reference." },
   ]);
   const [loading, setLoading]  = useState(false);
@@ -166,7 +166,7 @@ export default function Console() {
   return (
     <div
       className="flex flex-col"
-      style={{ height: "100vh", padding: "24px", gap: "14px", background: "#000" }}
+      style={{ height: "100vh", padding: "24px", gap: "14px", background: "var(--bg)" }}
     >
       {/* Header bar */}
       <motion.div
@@ -179,8 +179,8 @@ export default function Console() {
           <h1
             className="text-lg font-bold tracking-widest uppercase"
             style={{
-              fontFamily: "'Fira Code', monospace",
-              color: "#00FF41",
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "var(--accent)",
               textShadow: "0 0 10px rgba(0,255,65,0.5)",
             }}
           >
@@ -188,7 +188,7 @@ export default function Console() {
           </h1>
           <p
             className="text-xs mt-0.5"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
+            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
           >
             interactive agent shell
           </p>
@@ -198,10 +198,10 @@ export default function Console() {
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
             style={{
-              fontFamily: "'Fira Code', monospace",
+              fontFamily: "'JetBrains Mono', monospace",
               background: wsLive ? "rgba(0,255,65,0.05)" : "rgba(255,255,255,0.02)",
-              border: `1px solid ${wsLive ? "rgba(0,255,65,0.25)" : "#1F1F1F"}`,
-              color: wsLive ? "#00FF41" : "#4A4A4A",
+              border: `1px solid ${wsLive ? "rgba(0,255,65,0.25)" : "var(--border)"}`,
+              color: wsLive ? "var(--accent)" : "var(--text-faint)",
             }}
           >
             {wsLive ? <Wifi size={10} /> : <WifiOff size={10} />}
@@ -223,7 +223,7 @@ export default function Console() {
             <ChevronDown
               size={11}
               className="absolute right-2 top-2 pointer-events-none"
-              style={{ color: "#4A4A4A" }}
+              style={{ color: "var(--text-faint)" }}
             />
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function Console() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
         className="flex-1 hud-panel p-4 overflow-y-auto cursor-text"
-        style={{ minHeight: 0, fontFamily: "'Fira Code', monospace", fontSize: "12px" }}
+        style={{ minHeight: 0, fontFamily: "'JetBrains Mono', monospace", fontSize: "12px" }}
         onClick={() => inputRef.current?.focus()}
       >
         <AnimatePresence initial={false}>
@@ -249,19 +249,19 @@ export default function Console() {
             >
               <span
                 className="w-14 flex-shrink-0 pt-0.5 select-none text-xs"
-                style={{ color: "#1F1F1F" }}
+                style={{ color: "var(--border)" }}
               >
                 {l.time}
               </span>
               {l.type === "screenshot" ? (
                 <div className="flex flex-col gap-2">
-                  <span style={{ color: "#00FF41", fontSize: "11px" }}>
+                  <span style={{ color: "var(--accent)", fontSize: "11px" }}>
                     [SCREENSHOT] captured
                   </span>
                   <motion.div
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    style={{ border: "1px solid #1F1F1F", maxWidth: 580, overflow: "hidden" }}
+                    style={{ border: "1px solid var(--border)", maxWidth: 580, overflow: "hidden" }}
                   >
                     <img
                       src={`data:image/png;base64,${l.text}`}
@@ -272,7 +272,7 @@ export default function Console() {
                   <a
                     href={`data:image/png;base64,${l.text}`}
                     download="screenshot.png"
-                    style={{ color: "#00FF41", fontSize: "10px" }}
+                    style={{ color: "var(--accent)", fontSize: "10px" }}
                   >
                     ↓ download
                   </a>
@@ -326,18 +326,18 @@ export default function Console() {
         <div
           className="flex-1 flex items-center gap-2.5 px-3"
           style={{
-            background: "#000",
-            border: "1px solid #1F1F1F",
+            background: "var(--bg)",
+            border: "1px solid var(--border)",
             transition: "border-color 0.15s",
           }}
-          onFocusCapture={e => { e.currentTarget.style.borderColor = "#00FF41"; }}
-          onBlurCapture={e => { e.currentTarget.style.borderColor = "#1F1F1F"; }}
+          onFocusCapture={e => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+          onBlurCapture={e => { e.currentTarget.style.borderColor = "var(--border)"; }}
         >
           <span
             className="select-none font-bold text-sm"
             style={{
-              fontFamily: "'Fira Code', monospace",
-              color: "#00FF41",
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "var(--accent)",
               textShadow: "0 0 4px rgba(0,255,65,0.5)",
             }}
           >
@@ -354,9 +354,9 @@ export default function Console() {
               background: "transparent",
               border: "none",
               outline: "none",
-              fontFamily: "'Fira Code', monospace",
+              fontFamily: "'JetBrains Mono', monospace",
               fontSize: "13px",
-              color: "#E0E0E0",
+              color: "var(--text)",
               padding: "10px 0",
             }}
             className="placeholder:text-nyx-muted"
