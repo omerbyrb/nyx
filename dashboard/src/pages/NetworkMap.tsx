@@ -11,13 +11,13 @@ interface Node { id: string; label: string; type: "agent" | "target" | "c2"; por
 interface Edge { from: string; to: string; }
 
 const SERVICE_COLORS: Record<string, string> = {
-  ssh: "var(--accent)", http: "#00CC33", https: "var(--accent)",
-  rdp: "var(--red)", smb: "#FFB800", ftp: "var(--text-muted)",
-  mysql: "var(--accent)", mssql: "var(--red)", redis: "#FFB800",
-  vnc: "var(--red)", telnet: "var(--red)",
+  ssh: "#00FF41", http: "#00CC33", https: "#00FF41",
+  rdp: "#FF3333", smb: "#FFB800", ftp: "#9A9A9A",
+  mysql: "#00FF41", mssql: "#FF3333", redis: "#FFB800",
+  vnc: "#FF3333", telnet: "#FF3333",
 };
 
-function serviceColor(s: string): string { return SERVICE_COLORS[s.toLowerCase()] ?? "var(--text-faint)"; }
+function serviceColor(s: string): string { return SERVICE_COLORS[s.toLowerCase()] ?? "#4A4A4A"; }
 
 function buildGraph(scans: ScanEntry[]): { nodes: Node[]; edges: Edge[] } {
   const nodeMap = new Map<string, Node>();
@@ -78,21 +78,21 @@ export default function NetworkMap() {
   const { nodes, edges } = buildGraph(loot?.scans ?? []);
 
   const nodeColor = (n: Node) =>
-    n.type === "c2" ? "var(--accent)" : n.type === "agent" ? "#00CC33" : "var(--surface)";
+    n.type === "c2" ? "#00FF41" : n.type === "agent" ? "#00CC33" : "#0D0D0D";
   const nodeStroke = (n: Node) =>
-    n.type === "c2" ? "var(--accent)" : n.type === "agent" ? "#00CC33" : "var(--border)";
+    n.type === "c2" ? "#00FF41" : n.type === "agent" ? "#00CC33" : "#1F1F1F";
 
   return (
-    <div className="flex flex-col" style={{ minHeight: "100vh", padding: "28px", gap: "16px", background: "var(--bg)" }}>
+    <div className="flex flex-col" style={{ minHeight: "100vh", padding: "28px", gap: "16px", background: "#000" }}>
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
         className="flex items-center justify-between flex-shrink-0">
         <div>
           <h1 className="text-lg font-bold tracking-widest uppercase"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent)", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
+            style={{ fontFamily: "'Fira Code', monospace", color: "#00FF41", textShadow: "0 0 10px rgba(0,255,65,0.5)" }}>
             // NETWORK_MAP
           </h1>
-          <p className="text-xs mt-1" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+          <p className="text-xs mt-1" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
             Topology built from portscan and hostscan results
           </p>
         </div>
@@ -104,9 +104,9 @@ export default function NetworkMap() {
           ].map(({ icon: Icon, onClick }, i) => (
             <motion.button key={i} whileTap={{ scale: 0.9 }} onClick={onClick}
               className="p-2"
-              style={{ background: "transparent", border: "1px solid var(--border)", color: "var(--text-faint)", cursor: "pointer" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)"; (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--text-faint)"; }}>
+              style={{ background: "transparent", border: "1px solid #1F1F1F", color: "#4A4A4A", cursor: "pointer" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "#00FF41"; (e.currentTarget as HTMLElement).style.color = "#00FF41"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#1F1F1F"; (e.currentTarget as HTMLElement).style.color = "#4A4A4A"; }}>
               <Icon size={13} />
             </motion.button>
           ))}
@@ -121,17 +121,17 @@ export default function NetworkMap() {
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                style={{ width: 20, height: 20, border: "1px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%" }} />
+                style={{ width: 20, height: 20, border: "1px solid #00FF41", borderTopColor: "transparent", borderRadius: "50%" }} />
             </div>
           )}
           {!loading && nodes.length === 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <Globe size={36} style={{ color: "var(--border)" }} />
-              <p className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+              <Globe size={36} style={{ color: "#1F1F1F" }} />
+              <p className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
                 No scan data yet
               </p>
-              <p className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--border)" }}>
-                Run <code style={{ color: "var(--accent)" }}>portscan</code> or <code style={{ color: "var(--accent)" }}>hostscan</code> on an agent
+              <p className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#1F1F1F" }}>
+                Run <code style={{ color: "#00FF41" }}>portscan</code> or <code style={{ color: "#00FF41" }}>hostscan</code> on an agent
               </p>
             </div>
           )}
@@ -139,7 +139,7 @@ export default function NetworkMap() {
             <svg ref={svgRef} width="100%" height="100%" style={{ minHeight: 500 }}>
               <defs>
                 <pattern id="nyx-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <circle cx="20" cy="20" r="0.8" fill="var(--border)" />
+                  <circle cx="20" cy="20" r="0.8" fill="#1F1F1F" />
                 </pattern>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="3" result="coloredBlur" />
@@ -156,7 +156,7 @@ export default function NetworkMap() {
                   return (
                     <line key={i}
                       x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-                      stroke="var(--border)" strokeWidth={1} strokeDasharray="4 4" />
+                      stroke="#1F1F1F" strokeWidth={1} strokeDasharray="4 4" />
                   );
                 })}
 
@@ -167,7 +167,7 @@ export default function NetworkMap() {
                     {/* Selection ring */}
                     {selected?.id === node.id && (
                       <circle cx={node.x} cy={node.y} r={32}
-                        fill="none" stroke="var(--accent)" strokeWidth={1} strokeOpacity={0.3} />
+                        fill="none" stroke="#00FF41" strokeWidth={1} strokeOpacity={0.3} />
                     )}
                     {/* Node circle */}
                     <circle cx={node.x} cy={node.y} r={22}
@@ -188,20 +188,20 @@ export default function NetworkMap() {
                     })}
                     {/* Label */}
                     <text x={node.x} y={node.y + 38} textAnchor="middle"
-                      style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
-                        fill: node.type === "target" ? "var(--text-faint)" : "var(--accent)", fontWeight: 600 }}>
+                      style={{ fontSize: 10, fontFamily: "'Fira Code', monospace",
+                        fill: node.type === "target" ? "#4A4A4A" : "#00FF41", fontWeight: 600 }}>
                       {node.label}
                     </text>
                     {node.type !== "c2" && node.agent && (
                       <text x={node.x} y={node.y + 50} textAnchor="middle"
-                        style={{ fontSize: 8, fontFamily: "'JetBrains Mono', monospace", fill: "var(--text-faint)" }}>
+                        style={{ fontSize: 8, fontFamily: "'Fira Code', monospace", fill: "#2A2A2A" }}>
                         via {node.agent}
                       </text>
                     )}
                     {/* Icon letter */}
                     <text x={node.x} y={node.y + 5} textAnchor="middle"
-                      style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700,
-                        fill: node.type === "target" ? "var(--text)" : "#000" }}>
+                      style={{ fontSize: 12, fontFamily: "'Fira Code', monospace", fontWeight: 700,
+                        fill: node.type === "target" ? "#E0E0E0" : "#000" }}>
                       {node.type === "c2" ? "C2" : node.type === "agent" ? "A" : node.label[0].toUpperCase()}
                     </text>
                   </g>
@@ -222,16 +222,16 @@ export default function NetworkMap() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div style={{ width: 8, height: 8, borderRadius: "50%",
-                    background: selected.type === "c2" ? "var(--accent)" : selected.type === "agent" ? "#00CC33" : "var(--border)",
-                    boxShadow: selected.type !== "target" ? "0 0 5px var(--accent)" : "none" }} />
+                    background: selected.type === "c2" ? "#00FF41" : selected.type === "agent" ? "#00CC33" : "#1F1F1F",
+                    boxShadow: selected.type !== "target" ? "0 0 5px #00FF41" : "none" }} />
                   <span className="font-bold text-xs"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}>{selected.label}</span>
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}>{selected.label}</span>
                 </div>
-                <span className="text-xs capitalize" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                <span className="text-xs capitalize" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                   {selected.type}
                 </span>
                 {selected.agent && (
-                  <p className="text-xs mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                  <p className="text-xs mt-0.5" style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}>
                     via {selected.agent}
                   </p>
                 )}
@@ -239,16 +239,16 @@ export default function NetworkMap() {
               {selected.ports.length > 0 && (
                 <div>
                   <p className="text-xs font-bold tracking-widest mb-2"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)", textTransform: "uppercase" }}>
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A", textTransform: "uppercase" }}>
                     OPEN_PORTS
                   </p>
                   <div className="flex flex-col gap-1.5">
                     {selected.ports.map(p => (
                       <div key={p.port} className="flex items-center justify-between px-2 py-1.5"
-                        style={{ background: "#050505", border: "1px solid var(--border)" }}>
-                        <span className="font-bold text-xs" style={{ fontFamily: "'JetBrains Mono', monospace",
+                        style={{ background: "#050505", border: "1px solid #1F1F1F" }}>
+                        <span className="font-bold text-xs" style={{ fontFamily: "'Fira Code', monospace",
                           color: serviceColor(p.service) }}>{p.port}</span>
-                        <span className="text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+                        <span className="text-xs" style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
                           {p.service}
                         </span>
                       </div>
@@ -258,10 +258,10 @@ export default function NetworkMap() {
               )}
               <button onClick={() => setSelected(null)}
                 className="text-xs mt-auto"
-                style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)",
+                style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A",
                   background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-faint)"; }}>
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#00FF41"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#2A2A2A"; }}>
                 CLOSE ✕
               </button>
             </motion.div>
@@ -273,20 +273,20 @@ export default function NetworkMap() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
         className="flex items-center gap-6 flex-shrink-0">
         {[
-          { color: "var(--accent)", glow: true,  label: "C2 Server" },
+          { color: "#00FF41", glow: true,  label: "C2 Server" },
           { color: "#00CC33", glow: true,  label: "Compromised Agent" },
-          { color: "var(--border)", glow: false, label: "Discovered Host" },
+          { color: "#1F1F1F", glow: false, label: "Discovered Host" },
         ].map(({ color, glow, label }) => (
           <div key={label} className="flex items-center gap-2 text-xs"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}>
+            style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}>
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: color,
               boxShadow: glow ? `0 0 5px ${color}` : "none",
-              border: glow ? "none" : "1px solid var(--border)" }} />
+              border: glow ? "none" : "1px solid #1F1F1F" }} />
             {label}
           </div>
         ))}
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--border)", fontSize: "11px" }}>·</span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)", fontSize: "11px" }}>
+        <span style={{ fontFamily: "'Fira Code', monospace", color: "#1F1F1F", fontSize: "11px" }}>·</span>
+        <span style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A", fontSize: "11px" }}>
           Colored dots = open ports
         </span>
       </motion.div>

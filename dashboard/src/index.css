@@ -1,178 +1,256 @@
-/* ── Nyx C2 v1.5.0 — Modern Design System ─────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+/* ── Cyberpunk UI — Nyx C2 v1.4.0 ─────────────────────────────────────────────
+   Design System: nextlevelbuilder/ui-ux-pro-max-skill
+   Style: Cyberpunk UI  |  Primary: #00FF41 (Matrix Green)  |  Mode: Dark Only
+   Typography: Fira Code / Fira Sans
+   ─────────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ── Design Tokens ─────────────────────────────────────────────────────────── */
-:root {
-  --bg:          #09090b;
-  --surface:     #111113;
-  --surface-2:   #18181b;
-  --border:      #27272a;
-  --border-2:    #3f3f46;
-  --text:        #f4f4f5;
-  --text-muted:  #a1a1aa;
-  --text-faint:  #52525b;
-  --accent:      #00FF41;
-  --accent-dim:  rgba(0, 255, 65, 0.12);
-  --accent-glow: rgba(0, 255, 65, 0.35);
-  --red:         #ef4444;
-  --red-dim:     rgba(239, 68, 68, 0.12);
-  --amber:       #f59e0b;
-  --radius:      6px;
-}
 
 /* ── Reset ─────────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  background-color: #000000;
+  color: #E0E0E0;
+  font-family: 'Fira Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #00FF41; border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: #39FF6A; box-shadow: 0 0 6px #00FF41; }
 
 /* ── Utility ───────────────────────────────────────────────────────────────── */
-.mono { font-family: 'JetBrains Mono', monospace; }
+.mono { font-family: 'Fira Code', monospace; }
 
-/* ── Cards / Surfaces ──────────────────────────────────────────────────────── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  transition: border-color 0.15s ease;
+/* ── Neon glow effects ─────────────────────────────────────────────────────── */
+.neon-text {
+  color: #00FF41;
+  text-shadow: 0 0 6px rgba(0,255,65,0.8), 0 0 18px rgba(0,255,65,0.4);
 }
-.card:hover { border-color: var(--border-2); }
+.neon-text-sm {
+  color: #00FF41;
+  text-shadow: 0 0 4px rgba(0,255,65,0.6);
+}
+.neon-border {
+  border-color: #00FF41 !important;
+  box-shadow: 0 0 8px rgba(0,255,65,0.35), inset 0 0 6px rgba(0,255,65,0.05);
+}
+.neon-red {
+  color: #FF3333;
+  text-shadow: 0 0 6px rgba(255,51,51,0.7);
+}
+
+/* ── HUD panels ────────────────────────────────────────────────────────────── */
+.hud-panel {
+  background: #0D0D0D;
+  border: 1px solid #1F1F1F;
+  position: relative;
+  overflow: hidden;
+}
+.hud-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,255,65,0.012) 3px,
+    rgba(0,255,65,0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.hud-panel > * { position: relative; z-index: 1; }
+.hud-panel:hover {
+  border-color: rgba(0,255,65,0.4);
+  box-shadow: 0 0 16px rgba(0,255,65,0.08);
+}
+
+/* ── Corner brackets (HUD style) ───────────────────────────────────────────── */
+.hud-corners {
+  position: relative;
+}
+.hud-corners::before,
+.hud-corners::after {
+  content: '';
+  position: absolute;
+  width: 10px; height: 10px;
+  border-color: #00FF41;
+  border-style: solid;
+}
+.hud-corners::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.hud-corners::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+
+/* ── Grid background ───────────────────────────────────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(0,255,65,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.bg-grid-sm {
+  background-image:
+    linear-gradient(rgba(0,255,65,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,0.025) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ── Scanline overlay ──────────────────────────────────────────────────────── */
+.scanlines {
+  position: relative;
+  overflow: hidden;
+}
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.18) 2px,
+    rgba(0,0,0,0.18) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
 
 /* ── Status pills ──────────────────────────────────────────────────────────── */
-.status-active {
-  background: var(--accent-dim);
-  border: 1px solid rgba(0, 255, 65, 0.25);
-  color: var(--accent);
-  border-radius: 4px;
+.status-active  {
+  background: rgba(0,255,65,0.08);
+  border: 1px solid rgba(0,255,65,0.3);
+  color: #00FF41;
+  text-shadow: 0 0 4px rgba(0,255,65,0.5);
 }
 .status-offline {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
-  color: var(--text-faint);
-  border-radius: 4px;
-}
-.status-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  color: var(--amber);
-  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #1F1F1F;
+  color: #4A4A4A;
 }
 
 /* ── Buttons ───────────────────────────────────────────────────────────────── */
 .btn-primary {
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: var(--radius);
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 13px;
+  background: transparent;
+  color: #00FF41;
+  border: 1px solid #00FF41;
+  box-shadow: 0 0 10px rgba(0,255,65,0.3), inset 0 0 10px rgba(0,255,65,0.05);
+  font-family: 'Fira Code', monospace;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.1s ease;
-  letter-spacing: 0.01em;
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
 }
-.btn-primary:hover:not(:disabled) { opacity: 0.88; }
-.btn-primary:active:not(:disabled) { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-primary:hover:not(:disabled) {
+  background: rgba(0,255,65,0.08);
+  box-shadow: 0 0 20px rgba(0,255,65,0.5), inset 0 0 12px rgba(0,255,65,0.08);
+  text-shadow: 0 0 6px rgba(0,255,65,0.8);
+}
+.btn-primary:active:not(:disabled) {
+  background: rgba(0,255,65,0.15);
+  box-shadow: 0 0 8px rgba(0,255,65,0.3);
+}
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .btn-ghost {
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: var(--radius);
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  border: 1px solid #1F1F1F;
+  color: #9A9A9A;
+  font-family: 'Fira Code', monospace;
+  font-weight: 400;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: border-color 0.15s, color 0.15s;
+  font-size: 12px;
 }
 .btn-ghost:hover:not(:disabled) {
-  border-color: var(--border-2);
-  color: var(--text);
-  background: var(--surface-2);
+  border-color: #00FF41;
+  color: #00FF41;
+  box-shadow: 0 0 6px rgba(0,255,65,0.2);
 }
 
 .btn-danger {
   background: transparent;
-  color: var(--red);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: var(--radius);
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  color: #FF3333;
+  border: 1px solid #FF3333;
+  box-shadow: 0 0 8px rgba(255,51,51,0.2);
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: box-shadow 0.15s, background 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .btn-danger:hover:not(:disabled) {
-  background: var(--red-dim);
-  border-color: rgba(239, 68, 68, 0.55);
+  background: rgba(255,51,51,0.08);
+  box-shadow: 0 0 16px rgba(255,51,51,0.4);
 }
 
 /* ── Inputs ────────────────────────────────────────────────────────────────── */
 .input-base {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  background: #000;
+  border: 1px solid #1F1F1F;
+  color: #E0E0E0;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .input-base:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-dim);
+  border-color: #00FF41;
+  box-shadow: 0 0 0 1px #00FF41, 0 0 12px rgba(0,255,65,0.2);
 }
-.input-base::placeholder { color: var(--text-faint); }
+.input-base::placeholder { color: #2A2A2A; }
 
+/* Select elements */
 select.input-base option {
-  background: var(--surface-2);
-  color: var(--text);
+  background: #0D0D0D;
+  color: #E0E0E0;
 }
 
-/* ── Terminal cursor ───────────────────────────────────────────────────────── */
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+/* ── Terminal cursor blink ─────────────────────────────────────────────────── */
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 .cursor-blink::after {
   content: '█';
-  color: var(--accent);
+  color: #00FF41;
   animation: blink 1s step-end infinite;
+  text-shadow: 0 0 6px #00FF41;
   margin-left: 2px;
 }
 
-/* ── Accent dot pulse ──────────────────────────────────────────────────────── */
-@keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.4); opacity: 0; }
+/* ── Glitch animation ──────────────────────────────────────────────────────── */
+@keyframes glitch {
+  0%,94%,100% { transform: none; clip-path: none; }
+  95%          { transform: skewX(-3deg); clip-path: inset(20% 0 60% 0); }
+  96%          { transform: skewX( 3deg); clip-path: inset(60% 0 20% 0); }
+  97%          { transform: none; clip-path: inset(40% 0 40% 0); }
 }
+.glitch { animation: glitch 6s ease-in-out infinite; }
 
-/* ── HUD panel (legacy compat — used sparingly) ───────────────────────────── */
-.hud-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+/* ── Flicker ───────────────────────────────────────────────────────────────── */
+@keyframes flicker {
+  0%,89%,91%,100% { opacity: 1; }
+  90%              { opacity: 0.6; }
 }
-.hud-corners { position: relative; }
+.flicker { animation: flicker 10s linear infinite; }
 
-/* ── Scan line for terminal areas only ────────────────────────────────────── */
-.terminal-surface {
-  background: #0a0a0a;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-family: 'JetBrains Mono', monospace;
+/* ── Ripple ────────────────────────────────────────────────────────────────── */
+.ripple { position: relative; overflow: hidden; }
+.ripple::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle, rgba(0,255,65,0.15) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
+.ripple:active::after { opacity: 1; }

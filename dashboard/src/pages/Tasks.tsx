@@ -4,10 +4,10 @@ import { getAgents, getAgentTasks, type Agent, type Task } from "../api/client";
 import { CheckCircle, XCircle, Clock, Loader, ChevronRight, RefreshCw } from "lucide-react";
 
 const STATUS_META: Record<string, { icon: React.ElementType; color: string; bg: string; border: string; spin?: boolean }> = {
-  completed: { icon: CheckCircle, color: "var(--accent)", bg: "rgba(0,255,65,0.05)",  border: "rgba(0,255,65,0.2)" },
-  failed:    { icon: XCircle,     color: "var(--red)", bg: "rgba(255,51,51,0.05)", border: "rgba(255,51,51,0.2)" },
-  pending:   { icon: Clock,       color: "var(--amber)", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)" },
-  running:   { icon: Loader,      color: "var(--accent)", bg: "rgba(0,255,65,0.05)",  border: "rgba(0,255,65,0.2)", spin: true },
+  completed: { icon: CheckCircle, color: "#00FF41", bg: "rgba(0,255,65,0.05)",  border: "rgba(0,255,65,0.2)" },
+  failed:    { icon: XCircle,     color: "#FF3333", bg: "rgba(255,51,51,0.05)", border: "rgba(255,51,51,0.2)" },
+  pending:   { icon: Clock,       color: "#FFB800", bg: "rgba(255,184,0,0.05)", border: "rgba(255,184,0,0.2)" },
+  running:   { icon: Loader,      color: "#00FF41", bg: "rgba(0,255,65,0.05)",  border: "rgba(0,255,65,0.2)", spin: true },
 };
 
 function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: number }) {
@@ -25,20 +25,20 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.04, duration: 0.2 }}
         onClick={() => setOpen(o => !o)}
-        style={{ borderBottom: "1px solid var(--border)", cursor: "pointer" }}
+        style={{ borderBottom: "1px solid #1F1F1F", cursor: "pointer" }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,255,65,0.02)"; }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
       >
         <td className="px-4 py-3 w-8">
           <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.15 }} className="inline-block">
-            <ChevronRight size={11} style={{ color: "var(--text-faint)" }} />
+            <ChevronRight size={11} style={{ color: "#2A2A2A" }} />
           </motion.span>
         </td>
         <td className="px-4 py-3">
           <span
             className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5"
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "'Fira Code', monospace",
               background: meta.bg,
               border: `1px solid ${meta.border}`,
               color: meta.color,
@@ -51,7 +51,7 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
         <td className="px-4 py-3">
           <span
             className="text-sm"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text)" }}
+            style={{ fontFamily: "'Fira Code', monospace", color: "#E0E0E0" }}
           >
             {task.command}
           </span>
@@ -59,7 +59,7 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
         <td className="px-4 py-3">
           <span
             className="text-sm"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)" }}
+            style={{ fontFamily: "'Fira Code', monospace", color: "#9A9A9A" }}
           >
             {task.hostname ?? task.agent_id.slice(0, 8)}
           </span>
@@ -67,7 +67,7 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
         <td className="px-4 py-3">
           <span
             className="text-xs"
-            style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
+            style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
           >
             {created}
           </span>
@@ -80,7 +80,7 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            style={{ borderBottom: "1px solid var(--border)" }}
+            style={{ borderBottom: "1px solid #1F1F1F" }}
           >
             <td colSpan={5} className="px-6 py-0 overflow-hidden" style={{ background: "#050505" }}>
               <motion.div
@@ -93,12 +93,12 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
                   <div
                     className="p-3 text-xs leading-5 max-h-48 overflow-y-auto"
                     style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      background: "var(--bg)",
-                      border: "1px solid var(--border)",
+                      fontFamily: "'Fira Code', monospace",
+                      background: "#000",
+                      border: "1px solid #1F1F1F",
                     }}
                   >
-                    <pre className="whitespace-pre-wrap break-all" style={{ color: "var(--text-muted)" }}>
+                    <pre className="whitespace-pre-wrap break-all" style={{ color: "#9A9A9A" }}>
                       {task.output || "(no output)"}
                     </pre>
                   </div>
@@ -113,10 +113,10 @@ function TaskRow({ task, index }: { task: Task & { hostname?: string }; index: n
 }
 
 const FILTERS = [
-  { key: "all",       label: "ALL",       color: "var(--accent)", border: "rgba(0,255,65,0.3)" },
-  { key: "completed", label: "DONE",      color: "var(--accent)", border: "rgba(0,255,65,0.3)" },
-  { key: "failed",    label: "FAILED",    color: "var(--red)", border: "rgba(255,51,51,0.3)" },
-  { key: "pending",   label: "PENDING",   color: "var(--amber)", border: "rgba(245,158,11,0.3)" },
+  { key: "all",       label: "ALL",       color: "#00FF41", border: "rgba(0,255,65,0.3)" },
+  { key: "completed", label: "DONE",      color: "#00FF41", border: "rgba(0,255,65,0.3)" },
+  { key: "failed",    label: "FAILED",    color: "#FF3333", border: "rgba(255,51,51,0.3)" },
+  { key: "pending",   label: "PENDING",   color: "#FFB800", border: "rgba(255,184,0,0.3)" },
 ];
 
 export default function Tasks() {
@@ -159,7 +159,7 @@ export default function Tasks() {
       );
 
   return (
-    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "var(--bg)" }}>
+    <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -169,18 +169,19 @@ export default function Tasks() {
       >
         <div>
           <h1
+            className="text-lg font-bold tracking-widest uppercase"
             style={{
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 700,
-              fontSize: "20px",
-              color: "var(--text)",
-              letterSpacing: "-0.02em",
-              marginBottom: 4,
+              fontFamily: "'Fira Code', monospace",
+              color: "#00FF41",
+              textShadow: "0 0 10px rgba(0,255,65,0.5)",
             }}
           >
-            Tasks
+            // TASKS
           </h1>
-          <p style={{ fontFamily: "'Inter', sans-serif", fontSize: "13px", color: "var(--text-muted)" }}>
+          <p
+            className="text-xs mt-1"
+            style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
+          >
             {tasks.length} tasks across {agents.length} agents
           </p>
         </div>
@@ -213,10 +214,10 @@ export default function Tasks() {
               whileTap={{ scale: 0.95 }}
               className="px-3 py-1 text-xs"
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "'Fira Code', monospace",
                 background: active ? `${f.color}0D` : "transparent",
-                border: `1px solid ${active ? f.border : "var(--border)"}`,
-                color: active ? f.color : "var(--text-faint)",
+                border: `1px solid ${active ? f.border : "#1F1F1F"}`,
+                color: active ? f.color : "#4A4A4A",
                 cursor: "pointer",
                 transition: "all 0.12s",
               }}
@@ -232,19 +233,19 @@ export default function Tasks() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="card"
+        className="hud-panel"
         style={{ overflow: "hidden" }}
       >
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              <tr style={{ borderBottom: "1px solid #1F1F1F" }}>
                 <th className="w-8" />
                 {["Status", "Command", "Agent", "Time"].map(h => (
                   <th
                     key={h}
                     className="px-4 py-2.5 text-left text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)", fontWeight: 400 }}
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A", fontWeight: 400 }}
                   >
                     {h}
                   </th>
@@ -257,7 +258,7 @@ export default function Tasks() {
                   <td
                     colSpan={5}
                     className="px-4 py-10 text-center text-xs"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--text-faint)" }}
+                    style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}
                   >
                     {"[ NO TASKS FOUND ]"}
                   </td>
