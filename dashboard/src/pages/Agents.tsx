@@ -1,13 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAgents, createTask, updateAgentNotes, deleteAgent, type Agent } from "../api/client";
 import { RefreshCw, Terminal, Download, Shield, ShieldOff, Clock, CheckCircle, StickyNote, Trash2 } from "lucide-react";
+
+function useCopyFlash() {
+  const [flash, setFlash] = useState<string | null>(null);
+  const copy = useCallback((text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setFlash(key);
+    setTimeout(() => setFlash(null), 1400);
+  }, []);
+  return { flash, copy };
+}
 
 function AgentCard({ agent, onConsole, index, onDelete }: {
   agent: Agent; onConsole: () => void; index: number; onDelete: () => void;
 }) {
   const diffSec = Math.floor((Date.now() - new Date(agent.last_seen + "Z").getTime()) / 1000);
   const alive   = diffSec < 30;
+  const { flash, copy } = useCopyFlash();
   const [action, setAction]  = useState<string | null>(null);
   const [dlPath, setDlPath]  = useState("");
   const [sleepVal, setSleep] = useState(agent.sleep);
@@ -128,14 +139,14 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
         style={{ background: "#050505", border: "1px solid #1A1A1A" }}
       >
         {[
-          ["USER",    agent.username],
-          ["PLAT",    `${agent.os}/${agent.arch}`],
-          ["IP",      agent.ip],
-          ["SEEN",    diffSec < 60 ? `${diffSec}s_ago` : `${Math.floor(diffSec / 60)}m_ago`],
-          ["SLEEP",   `${agent.sleep}s`],
-          ["JITTER",  `${agent.jitter}s`],
-        ].map(([label, value]) => (
-          <div key={label}>
+          ["USER",    agent.username,                                              false],
+          ["PLAT",    `${agent.os}/${agent.arch}`,                               false],
+          ["IP",      agent.ip,                                                   true],
+          ["SEEN",    diffSec < 60 ? `${diffSec}s_ago` : `${Math.floor(diffSec / 60)}m_ago`, false],
+          ["SLEEP",   `${agent.sleep}s`,                                         false],
+          ["JITTER",  `${agent.jitter}s`,                                        false],
+        ].map(([label, value, copyable]) => (
+          <div key={label as string}>
             <div
               className="text-xs mb-0.5 tracking-widest"
               style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A", fontSize: "9px" }}
@@ -144,9 +155,16 @@ function AgentCard({ agent, onConsole, index, onDelete }: {
             </div>
             <div
               className="text-xs"
-              style={{ fontFamily: "'Fira Code', monospace", color: "#9A9A9A" }}
+              onClick={copyable ? () => copy(value as string, label as string) : undefined}
+              title={copyable ? "Click to copy" : undefined}
+              style={{
+                fontFamily: "'Fira Code', monospace",
+                color: (copyable && flash === label) ? "#00FF41" : "#9A9A9A",
+                cursor: copyable ? "pointer" : "default",
+                transition: "color 0.15s",
+              }}
             >
-              {value}
+              {(copyable && flash === label) ? "COPIED!" : value}
             </div>
           </div>
         ))}
