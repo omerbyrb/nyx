@@ -1,7 +1,25 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { getAgents, type Agent } from "../api/client";
-import { Cpu, CheckCircle, AlertCircle, Radio } from "lucide-react";
+import { Cpu, CheckCircle, AlertCircle, Radio, Download } from "lucide-react";
+
+function exportCSV(agents: Agent[]) {
+  const isAlive = (a: Agent) => (Date.now() - new Date(a.last_seen + "Z").getTime()) / 1000 < 30;
+  const header  = ["hostname", "ip", "username", "os", "arch", "status", "last_seen"];
+  const rows    = agents.map(a => [
+    a.hostname, a.ip, a.username, a.os, a.arch,
+    isAlive(a) ? "active" : "offline",
+    a.last_seen,
+  ]);
+  const csv  = [header, ...rows].map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url  = URL.createObjectURL(blob);
+  const el   = document.createElement("a");
+  el.href = url;
+  el.download = `nyx-agents-${new Date().toISOString().slice(0, 10)}.csv`;
+  el.click();
+  URL.revokeObjectURL(url);
+}
 
 function useCounter(target: number, duration = 700) {
   const [val, setVal] = useState(0);
@@ -243,12 +261,26 @@ export default function Dashboard() {
           >
             // AGENT LIST
           </span>
-          <span
-            className="text-xs"
-            style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
-          >
-            {agents.length} nodes
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className="text-xs"
+              style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
+            >
+              {agents.length} nodes
+            </span>
+            {agents.length > 0 && (
+              <motion.button
+                onClick={() => exportCSV(agents)}
+                whileTap={{ scale: 0.95 }}
+                title="Export agents as CSV"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs btn-ghost"
+                style={{ fontFamily: "'Fira Code', monospace" }}
+              >
+                <Download size={10} />
+                EXPORT
+              </motion.button>
+            )}
+          </div>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
