@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
@@ -22,9 +22,30 @@ const pageVariants = {
   exit:    { opacity: 0, y: -8 },
 };
 
+const HOTKEYS: Record<string, string> = {
+  "alt+1": "dashboard",
+  "alt+2": "agents",
+  "alt+3": "tasks",
+  "alt+4": "console",
+  "alt+5": "reports",
+};
+
 export default function App() {
   const [page, setPage]   = useState("dashboard");
   const [authed, setAuthed] = useState(!!localStorage.getItem("nyx_token"));
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.altKey) return;
+      const key = `alt+${e.key}`;
+      if (HOTKEYS[key]) {
+        e.preventDefault();
+        setPage(HOTKEYS[key]);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   if (!authed) return <Login onLogin={() => setAuthed(true)} />;
 
