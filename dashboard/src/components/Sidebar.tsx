@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, LayoutDashboard, Activity,
@@ -9,6 +10,63 @@ interface SidebarProps {
   activePage: string;
   onNavigate: (page: string) => void;
   onLogout: () => void;
+}
+
+const QUOTES = [
+  "stay paranoid",
+  "trust no one",
+  "ghosts don't leave logs",
+  "never stop pivoting",
+  "the quieter you become,\nthe more you can hear",
+  "hack the planet",
+  "all your base are belong to us",
+  "there is no patch for\nhuman stupidity",
+  "root is not a privilege,\nit's a responsibility",
+  "move fast, cover tracks",
+];
+
+function RotatingQuote() {
+  const [idx, setIdx]     = useState(() => Math.floor(Math.random() * QUOTES.length));
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(i => (i + 1) % QUOTES.length);
+        setVisible(true);
+      }, 400);
+    }, 12000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <AnimatePresence mode="wait">
+      {visible && (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
+          className="px-3 py-2"
+        >
+          <div
+            style={{
+              fontFamily: "'Fira Code', monospace",
+              fontSize: "9px",
+              color: "#2A2A2A",
+              lineHeight: 1.6,
+              letterSpacing: "0.04em",
+              whiteSpace: "pre-line",
+            }}
+          >
+            {"// "}{QUOTES[idx]}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
 
 const navItems = [
@@ -200,6 +258,9 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
             SERVER_ONLINE
           </span>
         </div>
+
+        {/* Quote */}
+        <RotatingQuote />
 
         {/* Logout */}
         <motion.button
