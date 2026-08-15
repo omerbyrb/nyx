@@ -25,6 +25,27 @@ const QUOTES = [
   "move fast, cover tracks",
 ];
 
+function LiveClock() {
+  const [time, setTime] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    <div className="px-3 py-1.5 flex items-center gap-2">
+      <motion.span
+        animate={{ opacity: [1, 0.4, 1] }}
+        transition={{ duration: 1, repeat: Infinity }}
+        style={{ width: 4, height: 4, borderRadius: "50%", background: "#00FF41", boxShadow: "0 0 4px #00FF41", flexShrink: 0, display: "inline-block" }}
+      />
+      <span style={{ fontFamily: "'Fira Code', monospace", fontSize: "10px", color: "#4A4A4A", letterSpacing: "0.08em" }}>
+        {pad(time.getHours())}:{pad(time.getMinutes())}:{pad(time.getSeconds())}
+      </span>
+    </div>
+  );
+}
+
 function RotatingQuote() {
   const [idx, setIdx]     = useState(() => Math.floor(Math.random() * QUOTES.length));
   const [visible, setVisible] = useState(true);
@@ -258,6 +279,9 @@ export default function Sidebar({ activePage, onNavigate, onLogout }: SidebarPro
             SERVER_ONLINE
           </span>
         </div>
+
+        {/* Clock */}
+        <LiveClock />
 
         {/* Quote */}
         <RotatingQuote />
