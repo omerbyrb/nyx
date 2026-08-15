@@ -15,6 +15,7 @@ import Persistence from "./pages/Persistence";
 import ExtC2 from "./pages/ExtC2";
 import Playbooks from "./pages/Playbooks";
 import Login from "./pages/Login";
+import CommandPalette from "./components/CommandPalette";
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -200,6 +201,11 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <CommandPalette
+        onNavigate={setPage}
+        onLogout={() => { localStorage.removeItem("nyx_token"); setAuthed(false); }}
+      />
 
       <AnimatePresence>
         {cheat && <KonamiOverlay onDone={() => setCheat(false)} />}
