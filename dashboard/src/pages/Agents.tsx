@@ -348,6 +348,7 @@ interface AgentsProps { onNavigateConsole?: () => void; }
 export default function Agents({ onNavigateConsole }: AgentsProps) {
   const [agents, setAgents]   = useState<Agent[]>([]);
   const [loading, setLoading] = useState(false);
+  const [query, setQuery]     = useState("");
 
   const load = () => {
     setLoading(true);
@@ -359,6 +360,16 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
     const i = setInterval(load, 5000);
     return () => clearInterval(i);
   }, []);
+
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? agents.filter(a =>
+        a.hostname.toLowerCase().includes(q) ||
+        a.ip.toLowerCase().includes(q) ||
+        a.username.toLowerCase().includes(q) ||
+        a.os.toLowerCase().includes(q)
+      )
+    : agents;
 
   return (
     <div className="p-6 space-y-5" style={{ minHeight: "100%", background: "#000" }}>
@@ -384,7 +395,7 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
             className="text-xs mt-1"
             style={{ fontFamily: "'Fira Code', monospace", color: "#4A4A4A" }}
           >
-            {agents.length} registered nodes
+            {q ? `${filtered.length} / ${agents.length} nodes` : `${agents.length} registered nodes`}
           </p>
         </div>
         <motion.button
@@ -402,19 +413,34 @@ export default function Agents({ onNavigateConsole }: AgentsProps) {
         </motion.button>
       </motion.div>
 
+      {/* Search */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.2 }}
+      >
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="filter by hostname / ip / user / os..."
+          className="input-base w-full px-3 py-2 text-xs"
+          style={{ fontFamily: "'Fira Code', monospace" }}
+        />
+      </motion.div>
+
       {/* Grid */}
       <div className="grid gap-4 md:grid-cols-2">
-        {agents.length === 0 && (
+        {filtered.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="col-span-2 hud-panel p-12 text-center text-xs"
             style={{ fontFamily: "'Fira Code', monospace", color: "#2A2A2A" }}
           >
-            {"[ NO AGENTS CONNECTED ]"}
+            {q ? `[ NO MATCH FOR "${query}" ]` : "[ NO AGENTS CONNECTED ]"}
           </motion.div>
         )}
-        {agents.map((a, i) => (
+        {filtered.map((a, i) => (
           <AgentCard
             key={a.id}
             agent={a}
